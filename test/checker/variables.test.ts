@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { analyze, type AnalyzeOptions } from '../../src/analyze.js';
+import { analyze as analyzeWithSchema, type AnalyzeOptions } from '../../src/analyze.js';
+
+/** These tests are about variables only, so the command database is left out. */
+const analyze = (text: string, options: AnalyzeOptions = {}) => analyzeWithSchema(text, { schema: null, ...options });
 
 function rules(text: string, options?: AnalyzeOptions): string[] {
   return analyze(text, options).findings.map((f) => f.rule);

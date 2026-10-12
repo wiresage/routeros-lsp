@@ -6213,5 +6213,894 @@
   "message": "syntax error",
   "line": 1,
   "column": 18
+ },
+ {
+  "id": "s1",
+  "section": "does a full command leave the path changed?",
+  "note": "after a full command, a relative add",
+  "source": "/ip address print\nadd address=1.1.1.1/32 interface=ether1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "s2",
+  "section": "does a full command leave the path changed?",
+  "note": "after a full command, a relative print",
+  "source": "/ip address print\nprint",
+  "valid": false,
+  "message": "bad command name print",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "s3",
+  "section": "does a full command leave the path changed?",
+  "note": "after a path-only line, a relative print",
+  "source": "/ip address\nprint",
+  "valid": true
+ },
+ {
+  "id": "s4",
+  "section": "does a full command leave the path changed?",
+  "note": "path-only line, then a full command, then a relative add",
+  "source": "/ip address\n/ip route print\nadd address=1.1.1.1/32 interface=ether1",
+  "valid": true
+ },
+ {
+  "id": "s5",
+  "section": "does a full command leave the path changed?",
+  "note": "same, but an add that only /ip route accepts",
+  "source": "/ip address\n/ip route print\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 3,
+  "column": 5
+ },
+ {
+  "id": "s6",
+  "section": "does a full command leave the path changed?",
+  "note": "a path change inside a block, then a relative add",
+  "source": "/ip address\n{ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "s7",
+  "section": "does a full command leave the path changed?",
+  "note": "same, with the add of the first path",
+  "source": "/ip address\n{ /ip route }\nadd address=1.1.1.1/32 interface=ether1",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 3,
+  "column": 5
+ },
+ {
+  "id": "s8",
+  "section": "does a full command leave the path changed?",
+  "note": "path changes on one line",
+  "source": "/ip address; /ip route; add dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "s9",
+  "section": "does a full command leave the path changed?",
+  "note": "a full command inside a substitution",
+  "source": "/ip address\n:put [/ip route print]\nadd address=1.1.1.1/32 interface=ether1",
+  "valid": true
+ },
+ {
+  "id": "s10",
+  "section": "does a full command leave the path changed?",
+  "note": "go up, then a relative path",
+  "source": "/ip address\n..\nroute print",
+  "valid": true
+ },
+ {
+  "id": "s11",
+  "section": "does a full command leave the path changed?",
+  "note": "relative word that is not a child of the current path",
+  "source": "/ip address\nroute print",
+  "valid": false,
+  "message": "bad command name route",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "s12",
+  "section": "does a full command leave the path changed?",
+  "note": "relative word that is a root menu",
+  "source": "/ip address\nsystem identity print",
+  "valid": false,
+  "message": "bad command name system",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "s13",
+  "section": "does a full command leave the path changed?",
+  "note": "reset to root, then a root menu",
+  "source": "/ip address\n/\nsystem identity print",
+  "valid": true
+ },
+ {
+  "id": "s14",
+  "section": "does a full command leave the path changed?",
+  "note": "global command without a colon inside a menu",
+  "source": "/ip address\nput \"x\"",
+  "valid": false,
+  "message": "bad command name put",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "s15",
+  "section": "does a full command leave the path changed?",
+  "note": "global command with a colon inside a menu",
+  "source": "/ip address\n:put \"x\"",
+  "valid": true
+ },
+ {
+  "id": "s16",
+  "section": "does a full command leave the path changed?",
+  "note": "local without a colon inside a menu",
+  "source": "/ip address\nlocal x 1",
+  "valid": false,
+  "message": "bad command name local",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "s17",
+  "section": "does a full command leave the path changed?",
+  "note": "local with a colon inside a menu",
+  "source": "/ip address\n:local x 1",
+  "valid": true
+ },
+ {
+  "id": "s18",
+  "section": "does a full command leave the path changed?",
+  "note": "several commands in a path",
+  "source": "/ip address\nadd address=1.1.1.1/32 interface=ether1\nset 0 comment=x",
+  "valid": true
+ },
+ {
+  "id": "s19",
+  "section": "does a full command leave the path changed?",
+  "note": "dot dot glued to a word",
+  "source": "/ip address\n..add",
+  "valid": true
+ },
+ {
+  "id": "s20",
+  "section": "does a full command leave the path changed?",
+  "note": "absolute add while another path is current",
+  "source": "/ip address\n/ip route\n/ip address add address=1.1.1.1/32 interface=ether1",
+  "valid": true
+ },
+ {
+  "id": "s21",
+  "section": "does a full command leave the path changed?",
+  "note": "two-level relative path with a command",
+  "source": "/ip\naddress print",
+  "valid": true
+ },
+ {
+  "id": "s22",
+  "section": "does a full command leave the path changed?",
+  "note": "relative path set over two lines",
+  "source": "/ip\naddress\nprint",
+  "valid": true
+ },
+ {
+  "id": "s23",
+  "section": "does a full command leave the path changed?",
+  "note": "relative path, absolute full command, print",
+  "source": "/ip\naddress\n/ip route print\nprint",
+  "valid": true
+ },
+ {
+  "id": "s24",
+  "section": "does a full command leave the path changed?",
+  "note": "print at the root",
+  "source": ":put 1\nprint",
+  "valid": false,
+  "message": "bad command name print",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "s25",
+  "section": "does a full command leave the path changed?",
+  "note": "relative add inside a function body",
+  "source": "/ip address\n:global f do={ add address=1.1.1.1/32 interface=ether1 }",
+  "valid": true
+ },
+ {
+  "id": "s26",
+  "section": "does a full command leave the path changed?",
+  "note": "relative print inside do=",
+  "source": "/ip address\n:if (true) do={ print }",
+  "valid": true
+ },
+ {
+  "id": "s27",
+  "section": "does a full command leave the path changed?",
+  "note": "path set inside do=, then a relative print",
+  "source": ":if (true) do={ /ip address }\nprint",
+  "valid": false,
+  "message": "bad command name print",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "s28",
+  "section": "does a full command leave the path changed?",
+  "note": "relative command in a substitution as a statement",
+  "source": "/ip address\n[print]",
+  "valid": true
+ },
+ {
+  "id": "s29",
+  "section": "does a full command leave the path changed?",
+  "note": "relative command in a substitution argument",
+  "source": "/ip address\n:put [print count-only]",
+  "valid": true
+ },
+ {
+  "id": "s30",
+  "section": "does a full command leave the path changed?",
+  "note": "relative find in a substitution",
+  "source": "/ip address\n:foreach i in=[find] do={ :put $i }",
+  "valid": true
+ },
+ {
+  "id": "l1",
+  "section": "does the path change leak out?",
+  "note": "bare block",
+  "source": "{ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "l2",
+  "section": "does the path change leak out?",
+  "note": ":do body",
+  "source": ":do { /ip route } on-error={ }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l3",
+  "section": "does the path change leak out?",
+  "note": ":foreach body",
+  "source": ":foreach i in={1} do={ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l4",
+  "section": "does the path change leak out?",
+  "note": ":while body",
+  "source": ":while (false) do={ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l5",
+  "section": "does the path change leak out?",
+  "note": ":if body",
+  "source": ":if (true) do={ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l6",
+  "section": "does the path change leak out?",
+  "note": "else body",
+  "source": ":if (true) do={ } else={ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l7",
+  "section": "does the path change leak out?",
+  "note": ":for body",
+  "source": ":for i from=1 to=1 do={ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l8",
+  "section": "does the path change leak out?",
+  "note": "path-only command in a substitution",
+  "source": ":put [/ip route]\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l9",
+  "section": "does the path change leak out?",
+  "note": "substitution as a statement",
+  "source": "[/ip route]\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "l10",
+  "section": "does the path change leak out?",
+  "note": "function body",
+  "source": ":global f do={ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l11",
+  "section": "does the path change leak out?",
+  "note": "brace argument",
+  "source": ":local a { /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l12",
+  "section": "does the path change leak out?",
+  "note": "path block",
+  "source": "/ip { route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "l13",
+  "section": "does the path change leak out?",
+  "note": "nested path block",
+  "source": "/ip { route { } }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "l14",
+  "section": "does the path change leak out?",
+  "note": ":onerror in= body",
+  "source": ":onerror e in={ /ip route } do={ }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l15",
+  "section": "does the path change leak out?",
+  "note": ":onerror do= body",
+  "source": ":onerror e in={ } do={ /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l16",
+  "section": "does the path change leak out?",
+  "note": ":execute body",
+  "source": ":execute { /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l17",
+  "section": "does the path change leak out?",
+  "note": ":retry body",
+  "source": ":retry command={ /ip route } delay=1 max=1\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": false,
+  "message": "bad command name add",
+  "line": 2,
+  "column": 1
+ },
+ {
+  "id": "l18",
+  "section": "does the path change leak out?",
+  "note": "leak back to a different path",
+  "source": "/ip route\n{ /ip address }\nadd address=1.1.1.1/32 interface=ether1",
+  "valid": true
+ },
+ {
+  "id": "l19",
+  "section": "does the path change leak out?",
+  "note": "relative path change inside a bare block",
+  "source": "/ip\n{ route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "l20",
+  "section": "does the path change leak out?",
+  "note": "path block with a semicolon",
+  "source": "/ip { route; }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "l21",
+  "section": "does the path change leak out?",
+  "note": "path block that is empty",
+  "source": "/ip route { }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "l22",
+  "section": "does the path change leak out?",
+  "note": "add inside the block after the change",
+  "source": "{ /ip route; add dst-address=0.0.0.0/0 gateway=1.1.1.1 }",
+  "valid": true
+ },
+ {
+  "id": "l23",
+  "section": "does the path change leak out?",
+  "note": "add inside if after the change",
+  "source": ":if (true) do={ /ip route; add dst-address=0.0.0.0/0 gateway=1.1.1.1 }",
+  "valid": true
+ },
+ {
+  "id": "l24",
+  "section": "does the path change leak out?",
+  "note": "path restored after if",
+  "source": "/ip route\n:if (true) do={ /ip address; add address=1.1.1.1/32 interface=ether1 }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1",
+  "valid": true
+ },
+ {
+  "id": "b1",
+  "section": "bare words that match a parameter name",
+  "note": "the word is the name of put's only parameter",
+  "source": ":put message",
+  "valid": true
+ },
+ {
+  "id": "b2",
+  "section": "bare words that match a parameter name",
+  "note": "a prefix of that name",
+  "source": ":put m",
+  "valid": true
+ },
+ {
+  "id": "b3",
+  "section": "bare words that match a parameter name",
+  "note": "same for :log info",
+  "source": ":log info message",
+  "valid": true
+ },
+ {
+  "id": "b4",
+  "section": "bare words that match a parameter name",
+  "note": "not a prefix: a plain value",
+  "source": ":put msg",
+  "valid": true
+ },
+ {
+  "id": "b5",
+  "section": "bare words that match a parameter name",
+  "note": "a valued parameter used as a flag",
+  "source": "/ip address add comment",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 17
+ },
+ {
+  "id": "b6",
+  "section": "bare words that match a parameter name",
+  "note": "its prefix",
+  "source": "/ip address add comm",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 17
+ },
+ {
+  "id": "b7",
+  "section": "bare words that match a parameter name",
+  "note": "the name of the unnamed parameter",
+  "source": "/ip address remove numbers",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 20
+ },
+ {
+  "id": "b8",
+  "section": "bare words that match a parameter name",
+  "note": "its prefix",
+  "source": "/ip address remove n",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 20
+ },
+ {
+  "id": "b9",
+  "section": "bare words that match a parameter name",
+  "note": "a number",
+  "source": "/ip address remove 0",
+  "valid": true
+ },
+ {
+  "id": "b10",
+  "section": "bare words that match a parameter name",
+  "note": "a name that matches no parameter",
+  "source": "/ip address remove ether1",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 20
+ },
+ {
+  "id": "b11",
+  "section": "bare words that match a parameter name",
+  "note": "enable with an interface name",
+  "source": "/interface enable ether1",
+  "valid": true
+ },
+ {
+  "id": "b12",
+  "section": "bare words that match a parameter name",
+  "note": "a valued parameter after a positional value",
+  "source": "/interface set ether1 name",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 23
+ },
+ {
+  "id": "b13",
+  "section": "bare words that match a parameter name",
+  "note": "a flag with a value",
+  "source": "/ip address print detail=yes",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 25
+ },
+ {
+  "id": "b14",
+  "section": "bare words that match a parameter name",
+  "note": "another flag with a value",
+  "source": "/ip address print as-value=no",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 27
+ },
+ {
+  "id": "b15",
+  "section": "bare words that match a parameter name",
+  "note": "where with nothing after it",
+  "source": "/ip address print where",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 19
+ },
+ {
+  "id": "b16",
+  "section": "bare words that match a parameter name",
+  "note": "where with a property",
+  "source": "/ip address print where disabled",
+  "valid": true
+ },
+ {
+  "id": "b17",
+  "section": "bare words that match a parameter name",
+  "note": "from as a bare word",
+  "source": "/ip address print from",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 19
+ },
+ {
+  "id": "b18",
+  "section": "bare words that match a parameter name",
+  "note": "from with a value",
+  "source": "/ip address print from=0",
+  "valid": true
+ },
+ {
+  "id": "b19",
+  "section": "bare words that match a parameter name",
+  "note": "named value",
+  "source": ":put message=x",
+  "valid": true
+ },
+ {
+  "id": "b20",
+  "section": "bare words that match a parameter name",
+  "note": "positional and named for the same parameter",
+  "source": ":put \"a\" message=x",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 10
+ },
+ {
+  "id": "b21",
+  "section": "bare words that match a parameter name",
+  "note": "positional and named for the same parameter",
+  "source": "/ip address set 0 numbers=1",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 19
+ },
+ {
+  "id": "b22",
+  "section": "bare words that match a parameter name",
+  "note": "named then positional",
+  "source": "/ip address set numbers=0 1",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 27
+ },
+ {
+  "id": "b23",
+  "section": "bare words that match a parameter name",
+  "note": "three unnamed arguments",
+  "source": ":local x y z",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 12
+ },
+ {
+  "id": "b24",
+  "section": "bare words that match a parameter name",
+  "note": "a function definition",
+  "source": ":global x do={ }",
+  "valid": true
+ },
+ {
+  "id": "b25",
+  "section": "bare words that match a parameter name",
+  "note": "function definition then a value",
+  "source": ":local x do={ } 1",
+  "valid": true
+ },
+ {
+  "id": "b26",
+  "section": "bare words that match a parameter name",
+  "note": "foreach with counter, in and do",
+  "source": ":foreach i in={1} do={ }",
+  "valid": true
+ },
+ {
+  "id": "b27",
+  "section": "bare words that match a parameter name",
+  "note": "foreach with two counters",
+  "source": ":foreach k,v in={1} do={ }",
+  "valid": true
+ },
+ {
+  "id": "b28",
+  "section": "bare words that match a parameter name",
+  "note": "for",
+  "source": ":for i from=1 to=2 do={ }",
+  "valid": true
+ },
+ {
+  "id": "b29",
+  "section": "bare words that match a parameter name",
+  "note": "while",
+  "source": ":while (true) do={ }",
+  "valid": true
+ },
+ {
+  "id": "b30",
+  "section": "bare words that match a parameter name",
+  "note": "if",
+  "source": ":if (true) do={ } else={ }",
+  "valid": true
+ },
+ {
+  "id": "b31",
+  "section": "bare words that match a parameter name",
+  "note": "do while",
+  "source": ":do { } while=(true)",
+  "valid": true
+ },
+ {
+  "id": "b32",
+  "section": "bare words that match a parameter name",
+  "note": "do on-error",
+  "source": ":do { } on-error={ }",
+  "valid": true
+ },
+ {
+  "id": "b33",
+  "section": "bare words that match a parameter name",
+  "note": "onerror",
+  "source": ":onerror e in={ } do={ }",
+  "valid": true
+ },
+ {
+  "id": "b34",
+  "section": "bare words that match a parameter name",
+  "note": "retry",
+  "source": ":retry command={ } delay=1 max=1",
+  "valid": true
+ },
+ {
+  "id": "b35",
+  "section": "bare words that match a parameter name",
+  "note": "execute with a block",
+  "source": ":execute { }",
+  "valid": true
+ },
+ {
+  "id": "b36",
+  "section": "bare words that match a parameter name",
+  "note": "execute with a named script",
+  "source": ":execute script={ }",
+  "valid": true
+ },
+ {
+  "id": "b37",
+  "section": "bare words that match a parameter name",
+  "note": "execute with a flag",
+  "source": ":execute script=\":put 1\" as-string",
+  "valid": true
+ },
+ {
+  "id": "b38",
+  "section": "bare words that match a parameter name",
+  "note": "return",
+  "source": ":return 1",
+  "valid": true
+ },
+ {
+  "id": "b39",
+  "section": "bare words that match a parameter name",
+  "note": "return with nothing",
+  "source": ":return",
+  "valid": false,
+  "message": "Script Error: missing value(s) of argument(s) value"
+ },
+ {
+  "id": "b40",
+  "section": "bare words that match a parameter name",
+  "note": "error",
+  "source": ":error \"x\"",
+  "valid": true
+ },
+ {
+  "id": "b41",
+  "section": "bare words that match a parameter name",
+  "note": "delay",
+  "source": ":delay 1s",
+  "valid": true
+ },
+ {
+  "id": "b42",
+  "section": "bare words that match a parameter name",
+  "note": "time",
+  "source": ":time { }",
+  "valid": true
+ },
+ {
+  "id": "b43",
+  "section": "bare words that match a parameter name",
+  "note": "pick",
+  "source": ":pick \"abc\" 1 2",
+  "valid": true
+ },
+ {
+  "id": "b44",
+  "section": "bare words that match a parameter name",
+  "note": "tostr",
+  "source": ":tostr 1",
+  "valid": true
+ },
+ {
+  "id": "b45",
+  "section": "bare words that match a parameter name",
+  "note": "convert",
+  "source": ":convert 1 to=hex",
+  "valid": true
+ },
+ {
+  "id": "b46",
+  "section": "bare words that match a parameter name",
+  "note": "resolve",
+  "source": ":resolve google.com",
+  "valid": true
+ },
+ {
+  "id": "b47",
+  "section": "bare words that match a parameter name",
+  "note": "find",
+  "source": ":find \"abc\" \"b\"",
+  "valid": true
+ },
+ {
+  "id": "b48",
+  "section": "bare words that match a parameter name",
+  "note": "parse",
+  "source": ":parse \":put 1\"",
+  "valid": true
+ },
+ {
+  "id": "b49",
+  "section": "bare words that match a parameter name",
+  "note": "len",
+  "source": ":len \"abc\"",
+  "valid": true
+ },
+ {
+  "id": "b50",
+  "section": "bare words that match a parameter name",
+  "note": "typeof",
+  "source": ":typeof 1",
+  "valid": true
+ },
+ {
+  "id": "b51",
+  "section": "bare words that match a parameter name",
+  "note": "script run",
+  "source": "/system script run x",
+  "valid": true
+ },
+ {
+  "id": "b52",
+  "section": "bare words that match a parameter name",
+  "note": "fetch",
+  "source": "/tool fetch url=\"http://x\" mode=http",
+  "valid": true
+ },
+ {
+  "id": "b53",
+  "section": "bare words that match a parameter name",
+  "note": "fetch with a positional url",
+  "source": "/tool fetch \"http://x\"",
+  "valid": true
+ },
+ {
+  "id": "b54",
+  "section": "bare words that match a parameter name",
+  "note": "remove with a name",
+  "source": "/file remove x",
+  "valid": true
+ },
+ {
+  "id": "b55",
+  "section": "bare words that match a parameter name",
+  "note": "reboot",
+  "source": "/system reboot",
+  "valid": true
+ },
+ {
+  "id": "b56",
+  "section": "bare words that match a parameter name",
+  "note": "log print",
+  "source": "/log print",
+  "valid": true
+ },
+ {
+  "id": "b57",
+  "section": "bare words that match a parameter name",
+  "note": "log print where",
+  "source": "/log print where topics~\"info\"",
+  "valid": true
  }
 ]

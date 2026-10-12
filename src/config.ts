@@ -13,12 +13,14 @@ export interface Settings {
   readonly scope: ScopeMode;
   /** Variables that the environment provides and that are therefore never reported as undeclared. */
   readonly contextVariables: readonly string[];
+  /** The command database: 'bundled' (the default), 'off', or the path of a file made by tools/gen_schema.py. */
+  readonly schema: string;
 }
 
 /** Variables a DHCP server sets for a lease script (docs/ambiguities.md V-14; the documentation does not list them). */
 export const DEFAULT_CONTEXT_VARIABLES = ['leaseBound', 'leaseServerName', 'leaseActMAC', 'leaseActIP'] as const;
 
-export const DEFAULT_SETTINGS: Settings = { severities: {}, scope: 'import', contextVariables: DEFAULT_CONTEXT_VARIABLES };
+export const DEFAULT_SETTINGS: Settings = { severities: {}, scope: 'import', contextVariables: DEFAULT_CONTEXT_VARIABLES, schema: 'bundled' };
 
 const SEVERITIES: readonly string[] = ['error', 'warning', 'information', 'hint', 'off'];
 
@@ -57,5 +59,11 @@ export function parseSettings(raw: unknown, warn: (message: string) => void = ()
     if (Array.isArray(extra) && extra.every((v) => typeof v === 'string')) contextVariables = [...DEFAULT_CONTEXT_VARIABLES, ...(extra as string[])];
     else warn('"contextVariables" must be an array of variable names');
   }
-  return { severities, scope, contextVariables };
+
+  let schema = 'bundled';
+  if (root['schema'] !== undefined) {
+    if (typeof root['schema'] === 'string' && root['schema'] !== '') schema = root['schema'];
+    else warn('"schema" must be "bundled", "off" or the path of a command database file');
+  }
+  return { severities, scope, contextVariables, schema };
 }

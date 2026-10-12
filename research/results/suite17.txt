@@ -1,0 +1,29 @@
+version: 7.21.4 (long-term)
+
+== DOES THE PATH CHANGE LEAK OUT?
+l1   check { /ip route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1     -> OK   # bare block
+l2   check :do { /ip route } on-error={ }\nadd dst-address=0.0.0.0/0 ga -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :do body
+l3   check :foreach i in={1} do={ /ip route }\nadd dst-address=0.0.0.0/ -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :foreach body
+l4   check :while (false) do={ /ip route }\nadd dst-address=0.0.0.0/0 g -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :while body
+l5   check :if (true) do={ /ip route }\nadd dst-address=0.0.0.0/0 gatew -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :if body
+l6   check :if (true) do={ } else={ /ip route }\nadd dst-address=0.0.0. -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # else body
+l7   check :for i from=1 to=1 do={ /ip route }\nadd dst-address=0.0.0.0 -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :for body
+l8   check :put [/ip route]\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1  -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # path-only command in a substitution
+l9   check [/ip route]\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1       -> OK   # substitution as a statement
+l10  check :global f do={ /ip route }\nadd dst-address=0.0.0.0/0 gatewa -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # function body
+l11  check :local a { /ip route }\nadd dst-address=0.0.0.0/0 gateway=1. -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # brace argument
+l12  check /ip { route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1     -> OK   # path block
+l13  check /ip { route { } }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1 -> OK   # nested path block
+l14  check :onerror e in={ /ip route } do={ }\nadd dst-address=0.0.0.0/ -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :onerror in= body
+l15  check :onerror e in={ } do={ /ip route }\nadd dst-address=0.0.0.0/ -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :onerror do= body
+l16  check :execute { /ip route }\nadd dst-address=0.0.0.0/0 gateway=1. -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :execute body
+l17  check :retry command={ /ip route } delay=1 max=1\nadd dst-address= -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # :retry body
+l18  check /ip route\n{ /ip address }\nadd address=1.1.1.1/32 interface -> OK   # leak back to a different path
+l19  check /ip\n{ route }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1    -> OK   # relative path change inside a bare block
+l20  check /ip { route; }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1    -> OK   # path block with a semicolon
+l21  check /ip route { }\nadd dst-address=0.0.0.0/0 gateway=1.1.1.1     -> OK   # path block that is empty
+l22  check { /ip route; add dst-address=0.0.0.0/0 gateway=1.1.1.1 }     -> OK   # add inside the block after the change
+l23  check :if (true) do={ /ip route; add dst-address=0.0.0.0/0 gateway -> OK   # add inside if after the change
+l24  check /ip route\n:if (true) do={ /ip address; add address=1.1.1.1/ -> OK   # path restored after if
+
+cleanup: probe files left on the router: 0

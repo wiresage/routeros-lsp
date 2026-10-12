@@ -95,8 +95,8 @@ export const RULES = {
   },
   'syntax/trailing-comment': {
     source: 'device',
-    severity: 'error',
-    summary: 'A "#" after the first word of a command is an argument, not a comment.',
+    severity: 'warning',
+    summary: 'A "#" after the first word of a command is an argument, not a comment. With a command database the surplus arguments are reported as errors by schema/unexpected-argument.',
     ambiguity: ['L-01'],
   },
   'syntax/missing-separator': {
@@ -176,6 +176,50 @@ export const RULES = {
     severity: 'warning',
     summary: 'A variable named and, or or in. The documentation reserves them; RouterOS accepts them.',
     ambiguity: ['V-08'],
+  },
+  'schema/unknown-command': {
+    source: 'device',
+    severity: 'warning',
+    summary: 'A menu or command that is not in the command database. Menus of packages the database was not generated with are missing from it.',
+    ambiguity: ['C-02', 'C-10', 'P-01', 'P-02'],
+  },
+  'schema/ambiguous-name': {
+    source: 'device',
+    severity: 'error',
+    summary: 'An abbreviated name that matches more than one menu, command or parameter.',
+    ambiguity: ['C-10'],
+  },
+  'schema/unknown-parameter': {
+    source: 'device',
+    severity: 'warning',
+    summary: 'A parameter that the command does not have in the command database. Some parameters exist only on some hardware.',
+    ambiguity: ['C-10'],
+  },
+  'schema/duplicate-parameter': {
+    source: 'device',
+    severity: 'error',
+    summary: 'The same parameter given twice.',
+  },
+  'schema/unexpected-argument': {
+    source: 'device',
+    severity: 'error',
+    summary: 'More unnamed arguments than the command takes.',
+    ambiguity: ['C-04'],
+  },
+  'schema/flag-with-value': {
+    source: 'device',
+    severity: 'error',
+    summary: 'A flag such as detail or count-only written as name=value.',
+  },
+  'schema/parameter-needs-value': {
+    source: 'device',
+    severity: 'error',
+    summary: 'A parameter that takes a value written without one, as if it were a flag.',
+  },
+  'schema/missing-required': {
+    source: 'device',
+    severity: 'error',
+    summary: 'A parameter that the command cannot be compiled without is missing.',
   },
 } as const satisfies Record<string, RuleInfo>;
 

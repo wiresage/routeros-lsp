@@ -14,6 +14,9 @@ export interface Scope {
   readonly kind: ScopeKind;
   readonly parent: Scope | null;
   readonly declarations: Map<string, Declaration>;
+  /** The source range the scope covers. A line scope grows with each statement added to the line. */
+  start: number;
+  end: number;
 }
 
 export interface Declaration {
@@ -22,6 +25,8 @@ export interface Declaration {
   readonly start: number;
   readonly end: number;
   readonly scope: Scope;
+  /** From this offset on the name exists: the end of the declaring command, so a command's own value does not see it. */
+  readonly from: number;
 }
 
 export type Resolution =
@@ -58,6 +63,7 @@ export interface BindOptions {
 }
 
 export interface BindResult {
+  readonly scopes: Scope[];
   readonly declarations: Declaration[];
   readonly references: Reference[];
   readonly nameSites: NameSite[];
@@ -89,6 +95,7 @@ function breaksLine(text: string, from: number, to: number): boolean {
 }
 
 class Binder {
+  private readonly scopes: Scope[] = [];
   private readonly declarations: Declaration[] = [];
   private readonly references: Reference[] = [];
   private readonly nameSites: NameSite[] = [];
@@ -100,23 +107,30 @@ class Binder {
   ) {}
 
   run(script: Script): BindResult {
-    const file = this.scope('file', null);
-    let line = this.scope('statement', null);
+    const file = this.scope('file', null, 0, script.end);
+    let line = this.scope('statement', null, 0, 0);
     let previousEnd = 0;
     for (const statement of script.statements) {
-      if (this.options.mode === 'import' && breaksLine(this.text, previousEnd, statement.start)) line = this.scope('statement', null);
-      this.statement(statement, this.options.mode === 'import' ? line : file);
+      if (this.options.mode === 'import' && breaksLine(this.text, previousEnd, statement.start)) line = this.scope('statement', null, statement.start, statement.start);
+      const scope = this.options.mode === 'import' ? line : file;
+      if (scope === line) {
+        if (line.end === line.start) line.start = statement.start;
+        line.end = statement.end;
+      }
+      this.statement(statement, scope);
       previousEnd = statement.end;
     }
-    return { declarations: this.declarations, references: this.references, nameSites: this.nameSites, namedDeclarations: this.namedDeclarations };
+    return { scopes: this.scopes, declarations: this.declarations, references: this.references, nameSites: this.nameSites, namedDeclarations: this.namedDeclarations };
   }
 
-  private scope(kind: ScopeKind, parent: Scope | null): Scope {
-    return { kind, parent, declarations: new Map() };
+  private scope(kind: ScopeKind, parent: Scope | null, start: number, end: number): Scope {
+    const scope: Scope = { kind, parent, declarations: new Map(), start, end };
+    this.scopes.push(scope);
+    return scope;
   }
 
-  private declare(scope: Scope, name: string, kind: Declaration['kind'], start: number, end: number): void {
-    const declaration: Declaration = { name, kind, start, end, scope };
+  private declare(scope: Scope, name: string, kind: Declaration['kind'], start: number, end: number, from: number): void {
+    const declaration: Declaration = { name, kind, start, end, scope, from };
     scope.declarations.set(name, declaration);
     this.declarations.push(declaration);
   }
@@ -164,14 +178,14 @@ class Binder {
     for (const element of rest) {
       // :global name do={ ... } defines a function. Its body sees neither the locals nor the arguments of the code around it.
       if (element.kind === 'named' && wordText(element.name) === 'do' && element.value?.kind === 'brace') {
-        const body = this.scope('function', scope);
+        const body = this.scope('function', scope, element.value.start, element.value.end);
         for (const inner of element.value.body) this.statement(inner, body);
       } else {
         this.elements([element], scope);
       }
     }
     // The name exists for the commands after this one, not for its own value.
-    if (name && name.element.kind !== 'variable' && name.text !== '') this.declare(scope, name.text, kind, name.start, name.end);
+    if (name && name.element.kind !== 'variable' && name.text !== '') this.declare(scope, name.text, kind, name.start, name.end, statement.end);
   }
 
   private assignment(statement: Statement, scope: Scope): void {
@@ -208,8 +222,8 @@ class Binder {
         offset += part.length + 1;
       }
     }
-    const inner = this.scope('loop', scope);
-    for (const n of names) this.declare(inner, n.text, 'loop', n.start, n.end);
+    const inner = this.scope('loop', scope, statement.start, statement.end);
+    for (const n of names) this.declare(inner, n.text, 'loop', n.start, n.end, n.end);
 
     statement.elements.forEach((element, index) => {
       if (index === nameIndex && nameElement?.kind === 'word') return;
@@ -255,7 +269,7 @@ class Binder {
         for (const e of element.exprs) this.expr(e, scope);
         break;
       case 'brace': {
-        const inner = this.scope('block', scope);
+        const inner = this.scope('block', scope, element.start, element.end);
         for (const s of element.body) this.statement(s, inner);
         break;
       }

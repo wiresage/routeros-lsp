@@ -30,3 +30,17 @@ export function visit(node: Node, callback: (node: Node, parent: Node | null) =>
   if (callback(node, parent) === false) return;
   for (const child of children(node)) visit(child, callback, node);
 }
+
+/**
+ * The nodes that contain `offset`, outermost first. An offset on the boundary between two nodes counts for both, so a
+ * caret right after a word is inside that word.
+ */
+export function ancestorsAt(root: Node, offset: number): Node[] {
+  const chain: Node[] = [];
+  let node: Node | undefined = root;
+  while (node) {
+    chain.push(node);
+    node = children(node).find((child) => child.start <= offset && offset <= child.end && child.kind !== 'missing');
+  }
+  return chain;
+}

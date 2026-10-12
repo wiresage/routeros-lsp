@@ -31,7 +31,7 @@ describe('the built binary over real stdio', () => {
     const pending = client.nextDiagnostics('file:///e2e.rsc');
     await client.open('file:///e2e.rsc', '/ip address add address=1.1.1.1/32 comment="x" # note\n');
     const diagnostics = await pending;
-    expect(diagnostics.map((d) => d.code)).toEqual(['syntax/trailing-comment']);
+    expect(diagnostics.map((d) => d.code)).toEqual(['schema/unexpected-argument']);
     // A stray write to stdout would have broken the framing and been reported by the message reader.
     expect(client.errors).toEqual([]);
   });

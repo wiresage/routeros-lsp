@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/analyze.js';
+import { analyze, type AnalyzeOptions } from '../../src/analyze.js';
 import cases from './cases.json' with { type: 'json' };
 import gaps from './known-gaps.json' with { type: 'json' };
 
@@ -16,8 +16,14 @@ interface Case {
 
 const known = gaps as Record<string, string>;
 
+// The recorded answers come from the device itself, where an unknown name is an error. The server reports those as warnings
+// because its command database comes from a CHR (docs/configuration.md), so here they count as errors.
+const AS_THE_DEVICE: AnalyzeOptions = {
+  severities: { 'schema/unknown-command': 'error', 'schema/unknown-parameter': 'error' },
+};
+
 function agrees(c: Case): boolean {
-  const failed = analyze(c.source).findings.some((f) => f.severity === 'error');
+  const failed = analyze(c.source, AS_THE_DEVICE).findings.some((f) => f.severity === 'error');
   return failed === !c.valid;
 }
 

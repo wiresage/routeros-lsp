@@ -50,7 +50,7 @@ describe('server over a stream pair', () => {
     const diagnostics = await pending;
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0]).toMatchObject({
-      code: 'syntax/trailing-comment',
+      code: 'schema/unexpected-argument',
       source: 'routeros-lsp',
       severity: 1,
       range: { start: { line: 0, character: 7 }, end: { line: 0, character: 8 } },
@@ -90,17 +90,17 @@ describe('server over a stream pair', () => {
     expect((await pending)[0]?.severity).toBe(1);
 
     pending = client.nextDiagnostics(URI);
-    await client.configure({ routeros: { severities: { 'syntax/trailing-comment': 'warning' } } });
+    await client.configure({ routeros: { severities: { 'schema/unexpected-argument': 'warning' } } });
     expect((await pending)[0]?.severity).toBe(2);
 
     pending = client.nextDiagnostics(URI);
-    await client.configure({ severities: { 'syntax/trailing-comment': 'off' } });
+    await client.configure({ severities: { 'schema/unexpected-argument': 'off', 'syntax/trailing-comment': 'off' } });
     expect(await pending).toEqual([]);
   });
 
   it('reads severities from initialization options', async () => {
     await client.shutdown();
-    await start({ severities: { 'syntax/trailing-comment': 'hint' } });
+    await start({ severities: { 'schema/unexpected-argument': 'hint' } });
     const pending = client.nextDiagnostics(URI);
     await client.open(URI, ':put 1 # c\n');
     expect((await pending)[0]?.severity).toBe(4);

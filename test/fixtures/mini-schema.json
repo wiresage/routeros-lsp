@@ -1,0 +1,207 @@
+{
+  "format": 1,
+  "version": "7.0-test",
+  "root": {
+    "c": {
+      "put": {
+        "k": 1,
+        "a": {
+          "message": {}
+        },
+        "r": [
+          "message"
+        ],
+        "u": 1
+      },
+      "local": {
+        "k": 1,
+        "a": {
+          "name": {},
+          "value": {}
+        },
+        "r": [
+          "name"
+        ],
+        "u": 2
+      },
+      "if": {
+        "k": 1,
+        "a": {
+          "do": {},
+          "else": {}
+        },
+        "r": [
+          "do"
+        ],
+        "u": 1
+      },
+      "log": {
+        "c": {
+          "info": {
+            "k": 1,
+            "a": {
+              "message": {}
+            },
+            "r": [
+              "message"
+            ],
+            "u": 1
+          }
+        }
+      },
+      "ip": {
+        "c": {
+          "address": {
+            "c": {
+              "add": {
+                "k": 1,
+                "a": {
+                  "address": {
+                    "d": "Local IP address",
+                    "t": "A.B.C.D (IP address)"
+                  },
+                  "interface": {
+                    "d": "Interface name",
+                    "t": "string"
+                  },
+                  "comment": {
+                    "d": "Short description of the item",
+                    "t": "string value"
+                  },
+                  "disabled": {
+                    "e": [
+                      "yes",
+                      "no"
+                    ],
+                    "x": 1,
+                    "d": "Defines whether item is ignored or used",
+                    "t": "yes | no"
+                  }
+                },
+                "r": [
+                  "address",
+                  "interface"
+                ],
+                "d": "Create a new item"
+              },
+              "print": {
+                "k": 1,
+                "a": {
+                  "where": {},
+                  "detail": {
+                    "f": 1
+                  },
+                  "count-only": {
+                    "f": 1
+                  },
+                  "as-value": {
+                    "f": 1
+                  }
+                },
+                "d": "Print values of item properties"
+              },
+              "set": {
+                "k": 1,
+                "a": {
+                  "numbers": {},
+                  "comment": {},
+                  "address": {}
+                },
+                "r": [
+                  "numbers"
+                ],
+                "u": 1
+              },
+              "remove": {
+                "k": 1,
+                "a": {
+                  "numbers": {}
+                },
+                "r": [
+                  "numbers"
+                ],
+                "u": 1
+              },
+              "find": {
+                "k": 1,
+                "a": {
+                  "where": {}
+                }
+              }
+            },
+            "d": "IP address settings"
+          },
+          "accounting": {
+            "c": {
+              "print": {
+                "k": 1
+              }
+            }
+          },
+          "route": {
+            "c": {
+              "add": {
+                "k": 1,
+                "a": {
+                  "dst-address": {},
+                  "gateway": {}
+                },
+                "r": [
+                  "gateway"
+                ]
+              },
+              "print": {
+                "k": 1
+              }
+            }
+          },
+          "firewall": {
+            "c": {
+              "filter": {
+                "c": {
+                  "add": {
+                    "k": 1,
+                    "a": {
+                      "chain": {
+                        "e": [
+                          "input",
+                          "forward",
+                          "output"
+                        ]
+                      },
+                      "action": {
+                        "e": [
+                          "accept",
+                          "drop"
+                        ],
+                        "x": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "d": "IP addressing and routing"
+      },
+      "system": {
+        "c": {
+          "identity": {
+            "c": {
+              "set": {
+                "k": 1,
+                "a": {
+                  "name": {}
+                }
+              },
+              "print": {
+                "k": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
