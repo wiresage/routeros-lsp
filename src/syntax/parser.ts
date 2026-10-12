@@ -9,6 +9,7 @@ import type {
   Operand,
   Operator,
   Script,
+  Span,
   Statement,
   StringLit,
   StringPart,
@@ -131,6 +132,7 @@ class Parser {
   /** Closers of the constructs currently open, innermost last. Lets a missing closer be told apart from a stray one. */
   private readonly closers: string[] = [];
   private readonly found: SyntaxDiagnostic[] = [];
+  private readonly comments: Span[] = [];
 
   constructor(private readonly text: string) {}
 
@@ -140,7 +142,7 @@ class Parser {
       this.pos = 1;
     }
     const { body } = this.parseStatements(null, 'block');
-    const script: Script = { kind: 'script', start: 0, end: this.text.length, statements: body };
+    const script: Script = { kind: 'script', start: 0, end: this.text.length, statements: body, comments: this.comments };
     return { script, diagnostics: this.finish() };
   }
 
@@ -179,6 +181,14 @@ class Parser {
     while (this.pos < this.text.length && !isEol(this.text[this.pos]!)) this.pos++;
   }
 
+  private skipComment(): void {
+    const start = this.pos;
+    this.skipToEol();
+    // A comment can be reached twice when the parser backs up after an omitted value; positions only ever grow.
+    const last = this.comments[this.comments.length - 1];
+    if (!last || last.start < start) this.comments.push({ start, end: this.pos });
+  }
+
   /**
    * Skips spaces, tabs and line joins (a backslash before the line break). Returns true when anything was skipped.
    * A backslash that does not end the line is ignored by RouterOS although the documentation calls it illegal (L-03).
@@ -197,7 +207,7 @@ class Parser {
         } else if (isEol(this.text[p]!)) {
           this.pos = this.afterEol(p);
           // A line that starts with # right after a join is a comment line (docs/ambiguities.md L-01, probe z30).
-          if (this.peek() === '#') this.skipToEol();
+          if (this.peek() === '#') this.skipComment();
         } else {
           this.report('syntax/stray-backslash', 'A backslash is only valid at the end of a line or inside a string. RouterOS ignores it here.', this.pos, this.pos + 1);
           this.pos++;
@@ -217,7 +227,7 @@ class Parser {
       if (c === ';' || isEol(c)) {
         this.pos++;
       } else if (c === '#') {
-        this.skipToEol();
+        this.skipComment();
       } else {
         return;
       }

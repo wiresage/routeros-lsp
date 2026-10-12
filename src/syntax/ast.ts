@@ -7,6 +7,8 @@ export interface Span {
 export interface Script extends Span {
   readonly kind: 'script';
   readonly statements: Statement[];
+  /** Every comment, from the "#" to the end of its line. */
+  readonly comments: Span[];
 }
 
 /**

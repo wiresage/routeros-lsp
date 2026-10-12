@@ -5259,5 +5259,416 @@
   "note": "different case variable",
   "source": ":local A 1; :put $a",
   "valid": true
+ },
+ {
+  "id": "h1",
+  "section": "reading an undeclared variable",
+  "note": "bare argument",
+  "source": ":put $nope",
+  "valid": true
+ },
+ {
+  "id": "h2",
+  "section": "reading an undeclared variable",
+  "note": "alone in a group",
+  "source": ":put ($nope)",
+  "valid": true
+ },
+ {
+  "id": "h3",
+  "section": "reading an undeclared variable",
+  "note": "in arithmetic",
+  "source": ":put ($nope + 1)",
+  "valid": true
+ },
+ {
+  "id": "h4",
+  "section": "reading an undeclared variable",
+  "note": "in a condition",
+  "source": ":if ($nope = 1) do={ :put 1 }",
+  "valid": true
+ },
+ {
+  "id": "h5",
+  "section": "reading an undeclared variable",
+  "note": "alone in a condition",
+  "source": ":if ($nope) do={ :put 1 }",
+  "valid": true
+ },
+ {
+  "id": "h6",
+  "section": "reading an undeclared variable",
+  "note": "second argument",
+  "source": ":log info $nope",
+  "valid": true
+ },
+ {
+  "id": "h7",
+  "section": "reading an undeclared variable",
+  "note": "named parameter value",
+  "source": "/system identity set name=$nope",
+  "valid": true
+ },
+ {
+  "id": "h8",
+  "section": "reading an undeclared variable",
+  "note": "interpolated in a string",
+  "source": ":put \"a $nope b\"",
+  "valid": true
+ },
+ {
+  "id": "h9",
+  "section": "reading an undeclared variable",
+  "note": "expression in a string",
+  "source": ":put \"a $(1 + 2) b\"",
+  "valid": true
+ },
+ {
+  "id": "h10",
+  "section": "reading an undeclared variable",
+  "note": "undeclared inside an expression in a string",
+  "source": ":put \"$($nope + 1)\"",
+  "valid": true
+ },
+ {
+  "id": "h11",
+  "section": "reading an undeclared variable",
+  "note": "call of an undeclared function",
+  "source": "$nope 1",
+  "valid": true
+ },
+ {
+  "id": "h12",
+  "section": "reading an undeclared variable",
+  "note": "call inside a substitution",
+  "source": ":put [$nope 1]",
+  "valid": true
+ },
+ {
+  "id": "h13",
+  "section": "reading an undeclared variable",
+  "note": "undeclared in a while condition",
+  "source": ":while ($nope < 5) do={ }",
+  "valid": true
+ },
+ {
+  "id": "h14",
+  "section": "reading an undeclared variable",
+  "note": "undeclared in do-while",
+  "source": ":do { } while=($nope < 3)",
+  "valid": true
+ },
+ {
+  "id": "h15",
+  "section": "reading an undeclared variable",
+  "note": "undeclared as a loop bound",
+  "source": ":for i from=1 to=$nope do={ }",
+  "valid": true
+ },
+ {
+  "id": "h16",
+  "section": "reading an undeclared variable",
+  "note": "undeclared as the iterated value",
+  "source": ":foreach i in=$nope do={ }",
+  "valid": true
+ },
+ {
+  "id": "h17",
+  "section": "reading an undeclared variable",
+  "note": "undeclared array access",
+  "source": ":put ($nope->0)",
+  "valid": true
+ },
+ {
+  "id": "h18",
+  "section": "reading an undeclared variable",
+  "note": "initialiser",
+  "source": ":local a $nope",
+  "valid": true
+ },
+ {
+  "id": "h19",
+  "section": "reading an undeclared variable",
+  "note": "initialiser in a group",
+  "source": ":local a ($nope)",
+  "valid": true
+ },
+ {
+  "id": "h20",
+  "section": "reading an undeclared variable",
+  "note": "declared plus undeclared",
+  "source": ":local x 1; :put ($x + $nope)",
+  "valid": true
+ },
+ {
+  "id": "h21",
+  "section": "reading an undeclared variable",
+  "note": "variable declared in a block that ended",
+  "source": "{ :local x 1 }; :put ($x)",
+  "valid": true
+ },
+ {
+  "id": "h22",
+  "section": "reading an undeclared variable",
+  "note": "local on an earlier top-level line",
+  "source": ":local x 1\n:put ($x)",
+  "valid": true
+ },
+ {
+  "id": "h23",
+  "section": "reading an undeclared variable",
+  "note": "local on an earlier line, plain read",
+  "source": ":local x 1\n:put $x",
+  "valid": true
+ },
+ {
+  "id": "h24",
+  "section": "reading an undeclared variable",
+  "note": "global on an earlier line, group read",
+  "source": ":global g 1\n:put ($g)",
+  "valid": true
+ },
+ {
+  "id": "h25",
+  "section": "reading an undeclared variable",
+  "note": "set of a global declared on an earlier line",
+  "source": ":global g 1\n:set g 2",
+  "valid": false,
+  "message": "syntax error",
+  "line": 2,
+  "column": 6
+ },
+ {
+  "id": "h26",
+  "section": "reading an undeclared variable",
+  "note": "global declared without a value, then set",
+  "source": ":global g\n:set g 2",
+  "valid": false,
+  "message": "syntax error",
+  "line": 2,
+  "column": 6
+ },
+ {
+  "id": "h27",
+  "section": "reading an undeclared variable",
+  "note": "positional name in a group at top level",
+  "source": ":put ($1)",
+  "valid": true
+ },
+ {
+  "id": "h28",
+  "section": "reading an undeclared variable",
+  "note": "named function argument name at top level",
+  "source": ":put ($a)",
+  "valid": true
+ },
+ {
+  "id": "h29",
+  "section": "reading an undeclared variable",
+  "note": "function argument inside a group",
+  "source": ":global f do={ :put ($a + 1) }",
+  "valid": true
+ },
+ {
+  "id": "h30",
+  "section": "reading an undeclared variable",
+  "note": "positional argument inside a group",
+  "source": ":global f do={ :put ($1) }",
+  "valid": true
+ },
+ {
+  "id": "h31",
+  "section": "reading an undeclared variable",
+  "note": "function argument as an initialiser",
+  "source": ":global f do={ :local y ($a) }",
+  "valid": true
+ },
+ {
+  "id": "h32",
+  "section": "reading an undeclared variable",
+  "note": "lease script variable, undeclared here",
+  "source": ":put ($leaseBound)",
+  "valid": true
+ },
+ {
+  "id": "h33",
+  "section": "reading an undeclared variable",
+  "note": "bare name in a group",
+  "source": ":put (nope)",
+  "valid": true
+ },
+ {
+  "id": "h34",
+  "section": "reading an undeclared variable",
+  "note": "bare name in arithmetic",
+  "source": ":put (nope + 1)",
+  "valid": true
+ },
+ {
+  "id": "h35",
+  "section": "reading an undeclared variable",
+  "note": "compare with nil",
+  "source": ":put ($nope = nil)",
+  "valid": true
+ },
+ {
+  "id": "h36",
+  "section": "reading an undeclared variable",
+  "note": "typeof an undeclared name",
+  "source": ":put ([:typeof $nope])",
+  "valid": true
+ },
+ {
+  "id": "h37",
+  "section": "reading an undeclared variable",
+  "note": "any is not an operator",
+  "source": ":if (!any $nope) do={ }",
+  "valid": true
+ },
+ {
+  "id": "h38",
+  "section": "reading an undeclared variable",
+  "note": "typeof comparison",
+  "source": ":if ([:typeof $nope] = \"nothing\") do={ }",
+  "valid": true
+ },
+ {
+  "id": "h50",
+  "section": "crlf and line joins",
+  "note": "backslash CRLF as a join",
+  "source": ":put 1 \\\r\n  + 2",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 3
+ },
+ {
+  "id": "h51",
+  "section": "crlf and line joins",
+  "note": "CRLF file with a join",
+  "source": "/ip address\r\nadd address=1.1.1.1/32 \\\r\n    interface=ether1",
+  "valid": true
+ },
+ {
+  "id": "h52",
+  "section": "crlf and line joins",
+  "note": "CRLF join inside a string",
+  "source": ":put \"a\\\r\nb\"",
+  "valid": true
+ },
+ {
+  "id": "h53",
+  "section": "crlf and line joins",
+  "note": "plain CRLF",
+  "source": ":put 1\r\n:put 2\r\n",
+  "valid": true
+ },
+ {
+  "id": "h54",
+  "section": "crlf and line joins",
+  "note": "LF join then a second command (missing ;)",
+  "source": ":put 1 \\\n  :put 2",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 3
+ },
+ {
+  "id": "h55",
+  "section": "crlf and line joins",
+  "note": "CRLF join, no indent",
+  "source": "/ip address add address=1.1.1.1/32 \\\r\ninterface=ether1",
+  "valid": true
+ },
+ {
+  "id": "h56",
+  "section": "crlf and line joins",
+  "note": "CR-only join",
+  "source": "/ip address add address=1.1.1.1/32 \\\rinterface=ether1",
+  "valid": true
+ },
+ {
+  "id": "h60",
+  "section": "expressions from real scripts",
+  "note": "time divided",
+  "source": ":put (24h / 4)",
+  "valid": true
+ },
+ {
+  "id": "h61",
+  "section": "expressions from real scripts",
+  "note": "time minus compound time",
+  "source": ":local u 1d; :put ($u - 1w2d)",
+  "valid": false,
+  "message": "Script Error: cannot arithmetically negate ip address"
+ },
+ {
+  "id": "h62",
+  "section": "expressions from real scripts",
+  "note": "compound week time",
+  "source": ":put (1w2d)",
+  "valid": true
+ },
+ {
+  "id": "h63",
+  "section": "expressions from real scripts",
+  "note": "day divided",
+  "source": ":put (1d / 2)",
+  "valid": true
+ },
+ {
+  "id": "h64",
+  "section": "expressions from real scripts",
+  "note": "address mask",
+  "source": ":put (192.168.1.1 & 255.255.255.0)",
+  "valid": true
+ },
+ {
+  "id": "h65",
+  "section": "expressions from real scripts",
+  "note": "prefix concatenated",
+  "source": ":put (10.0.0.0/8 . \"\")",
+  "valid": true
+ },
+ {
+  "id": "h66",
+  "section": "expressions from real scripts",
+  "note": "negated undeclared",
+  "source": ":put (-$nope)",
+  "valid": true
+ },
+ {
+  "id": "h67",
+  "section": "expressions from real scripts",
+  "note": "negated declared",
+  "source": ":local a 1; :put (-$a)",
+  "valid": true
+ },
+ {
+  "id": "h68",
+  "section": "expressions from real scripts",
+  "note": "no such command",
+  "source": ":put [:toupper abc]",
+  "valid": false,
+  "message": "bad command name toupper",
+  "line": 1,
+  "column": 8
+ },
+ {
+  "id": "h69",
+  "section": "expressions from real scripts",
+  "note": "tolower",
+  "source": ":put [:tolower \"ABC\"]",
+  "valid": false,
+  "message": "bad command name tolower",
+  "line": 1,
+  "column": 8
+ },
+ {
+  "id": "h70",
+  "section": "expressions from real scripts",
+  "note": "convert transform",
+  "source": ":put [:convert transform=uc \"abc\"]",
+  "valid": true
  }
 ]
