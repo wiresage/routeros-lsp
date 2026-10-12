@@ -4600,8 +4600,7 @@
   "section": "operand kinds inside a group",
   "note": "spaced ->",
   "source": ":local a {1;2}; :put ($a -> 0)",
-  "valid": false,
-  "message": "0)                               -> OK"
+  "valid": true
  },
  {
   "id": "e64",
@@ -4757,6 +4756,508 @@
   "section": "statement forms",
   "note": "do on-error then command",
   "source": ":do { :put 1 } on-error={ :put 2 }; :put 3",
+  "valid": true
+ },
+ {
+  "id": "k20",
+  "section": "no space after a closing bracket",
+  "note": "}else= with no space",
+  "source": ":if (true) do={:put 1}else={:put 2}",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 23
+ },
+ {
+  "id": "k21",
+  "section": "no space after a closing bracket",
+  "note": ")do= with no space",
+  "source": ":if (true)do={:put 1}",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 11
+ },
+ {
+  "id": "k22",
+  "section": "no space after a closing bracket",
+  "note": "}do= with no space",
+  "source": ":foreach i in={1;2}do={:put $i}",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 20
+ },
+ {
+  "id": "k23",
+  "section": "no space after a closing bracket",
+  "note": "baseline substitution",
+  "source": ":put [:len \"a\"]",
+  "valid": true
+ },
+ {
+  "id": "k24",
+  "section": "no space after a closing bracket",
+  "note": "]) then do=",
+  "source": ":if ([:len \"a\"]>0)do={}",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 19
+ },
+ {
+  "id": "k25",
+  "section": "no space after a closing bracket",
+  "note": "}while= with no space",
+  "source": ":do {:put 1}while=(false)",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 13
+ },
+ {
+  "id": "k26",
+  "section": "no space after a closing bracket",
+  "note": "}on-error= with no space",
+  "source": ":do {:put 1}on-error={}",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 13
+ },
+ {
+  "id": "k27",
+  "section": "no space after a closing bracket",
+  "note": "baseline group",
+  "source": ":put (1)",
+  "valid": true
+ },
+ {
+  "id": "k28",
+  "section": "no space after a closing bracket",
+  "note": "baseline",
+  "source": ":local a {1;2}; :put ($a)",
+  "valid": true
+ },
+ {
+  "id": "k29",
+  "section": "no space after a closing bracket",
+  "note": "path block with no spaces inside",
+  "source": "/ip address {print}",
+  "valid": true
+ },
+ {
+  "id": "k30",
+  "section": "no space after a closing bracket",
+  "note": "two spaces before else",
+  "source": ":if (true) do={:put 1}  else={:put 2}",
+  "valid": true
+ },
+ {
+  "id": "k31",
+  "section": "no space after a closing bracket",
+  "note": "]do= with no space",
+  "source": ":foreach i in=[:toarray \"1,2\"]do={:put $i}",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 31
+ },
+ {
+  "id": "k32",
+  "section": "no space after a closing bracket",
+  "note": "command glued after the else block",
+  "source": ":if (true) do={:put 1} else={:put 2}:put 3",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 37
+ },
+ {
+  "id": "u10",
+  "section": "non-ascii outside strings",
+  "note": "accented letter as a bare word",
+  "source": ":put é",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 6
+ },
+ {
+  "id": "u11",
+  "section": "non-ascii outside strings",
+  "note": "accented letter inside a bare word",
+  "source": ":put aé",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 7
+ },
+ {
+  "id": "u12",
+  "section": "non-ascii outside strings",
+  "note": "accented letter as a parameter value",
+  "source": "/system identity set name=é",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 27
+ },
+ {
+  "id": "u13",
+  "section": "non-ascii outside strings",
+  "note": "accented letter as a variable name",
+  "source": ":local é 1",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 8
+ },
+ {
+  "id": "u14",
+  "section": "non-ascii outside strings",
+  "note": "accented letter as the message",
+  "source": ":log info é",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 11
+ },
+ {
+  "id": "u15",
+  "section": "non-ascii outside strings",
+  "note": "CJK as a bare word",
+  "source": ":put 日本",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 6
+ },
+ {
+  "id": "u16",
+  "section": "non-ascii outside strings",
+  "note": "accented letter in a variable read",
+  "source": ":put $é",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 7
+ },
+ {
+  "id": "u17",
+  "section": "non-ascii outside strings",
+  "note": "accented letter in a comment after ;",
+  "source": ":put \"é\" ; # é",
+  "valid": true
+ },
+ {
+  "id": "u18",
+  "section": "non-ascii outside strings",
+  "note": "quoted accented value",
+  "source": "/system identity set name=\"é\"",
+  "valid": true
+ },
+ {
+  "id": "u20",
+  "section": "statements that start with a literal",
+  "note": "a string as the whole statement",
+  "source": "\"abc\"",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u21",
+  "section": "statements that start with a literal",
+  "note": "a string as a statement in a block",
+  "source": "{ \"abc\" }",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 3
+ },
+ {
+  "id": "u22",
+  "section": "statements that start with a literal",
+  "note": "a number as the whole statement",
+  "source": "42",
+  "valid": false,
+  "message": "bad command name 42",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u23",
+  "section": "statements that start with a literal",
+  "note": "a group as the whole statement",
+  "source": "(1+2)",
+  "valid": true
+ },
+ {
+  "id": "u24",
+  "section": "statements that start with a literal",
+  "note": "a substitution as the whole statement",
+  "source": "[:len \"a\"]",
+  "valid": true
+ },
+ {
+  "id": "u25",
+  "section": "statements that start with a literal",
+  "note": "a variable as the whole statement",
+  "source": "$x",
+  "valid": true
+ },
+ {
+  "id": "u26",
+  "section": "statements that start with a literal",
+  "note": "numbers as statements in a block",
+  "source": "{ 1; 2 }",
+  "valid": false,
+  "message": "bad command name 1",
+  "line": 1,
+  "column": 3
+ },
+ {
+  "id": "u27",
+  "section": "statements that start with a literal",
+  "note": "a lone equals",
+  "source": "=",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u28",
+  "section": "statements that start with a literal",
+  "note": "equals then word",
+  "source": "=x",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u29",
+  "section": "statements that start with a literal",
+  "note": "bang word as a statement",
+  "source": "!x",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u30",
+  "section": "statements that start with a literal",
+  "note": "a lone hyphen",
+  "source": "-",
+  "valid": false,
+  "message": "bad command name -",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u31",
+  "section": "statements that start with a literal",
+  "note": "a lone dot",
+  "source": ".",
+  "valid": false,
+  "message": "bad command name .",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u32",
+  "section": "statements that start with a literal",
+  "note": "a lone comma",
+  "source": ",",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u33",
+  "section": "statements that start with a literal",
+  "note": "a lone tilde",
+  "source": "~",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u34",
+  "section": "statements that start with a literal",
+  "note": "an id as a statement",
+  "source": "*1",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 1
+ },
+ {
+  "id": "u35",
+  "section": "statements that start with a literal",
+  "note": "a lone colon",
+  "source": ":",
+  "valid": true
+ },
+ {
+  "id": "u36",
+  "section": "statements that start with a literal",
+  "note": "colon and space",
+  "source": ": ",
+  "valid": true
+ },
+ {
+  "id": "u37",
+  "section": "statements that start with a literal",
+  "note": "double colon",
+  "source": "::",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 2
+ },
+ {
+  "id": "u38",
+  "section": "statements that start with a literal",
+  "note": "colon and semicolon",
+  "source": ":;",
+  "valid": true
+ },
+ {
+  "id": "u39",
+  "section": "statements that start with a literal",
+  "note": "slash and semicolon",
+  "source": "/;",
+  "valid": true
+ },
+ {
+  "id": "u40",
+  "section": "statements that start with a literal",
+  "note": "a lone semicolon",
+  "source": ";",
+  "valid": true
+ },
+ {
+  "id": "u41",
+  "section": "statements that start with a literal",
+  "note": "semicolon in a block",
+  "source": "{;}",
+  "valid": true
+ },
+ {
+  "id": "u42",
+  "section": "statements that start with a literal",
+  "note": "semicolon in a substitution",
+  "source": "[;]",
+  "valid": true
+ },
+ {
+  "id": "u43",
+  "section": "statements that start with a literal",
+  "note": "unclosed substitution",
+  "source": ":put [",
+  "valid": false,
+  "message": "syntax error",
+  "line": 2,
+  "column": 7
+ },
+ {
+  "id": "u44",
+  "section": "statements that start with a literal",
+  "note": "stray ]",
+  "source": ":put ]",
+  "valid": false,
+  "message": "Script Error: missing value(s) of argument(s) message"
+ },
+ {
+  "id": "u45",
+  "section": "statements that start with a literal",
+  "note": "stray )",
+  "source": ":put )",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 6
+ },
+ {
+  "id": "u46",
+  "section": "statements that start with a literal",
+  "note": "mismatched closer",
+  "source": "{ :put 1 ]",
+  "valid": false,
+  "message": "missing closing brace",
+  "line": 1,
+  "column": 10
+ },
+ {
+  "id": "u47",
+  "section": "statements that start with a literal",
+  "note": "mismatched closer in a group",
+  "source": ":put [:len (1]",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 14
+ },
+ {
+  "id": "u48",
+  "section": "statements that start with a literal",
+  "note": "unclosed group before another command",
+  "source": ":put (\"a\"\n:put 2",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 10
+ },
+ {
+  "id": "u50",
+  "section": "case and spelling of keywords",
+  "note": "uppercase command",
+  "source": ":PUT 1",
+  "valid": false,
+  "message": "expected command name",
+  "line": 1,
+  "column": 2
+ },
+ {
+  "id": "u51",
+  "section": "case and spelling of keywords",
+  "note": "uppercase true",
+  "source": ":put TRUE",
+  "valid": true
+ },
+ {
+  "id": "u52",
+  "section": "case and spelling of keywords",
+  "note": "uppercase word operators",
+  "source": ":put (TRUE and FALSE)",
+  "valid": true
+ },
+ {
+  "id": "u53",
+  "section": "case and spelling of keywords",
+  "note": "uppercase AND",
+  "source": ":put (1 AND 2)",
+  "valid": true
+ },
+ {
+  "id": "u54",
+  "section": "case and spelling of keywords",
+  "note": "mixed case And",
+  "source": ":put (1 And 2)",
+  "valid": true
+ },
+ {
+  "id": "u55",
+  "section": "case and spelling of keywords",
+  "note": "different case variable",
+  "source": ":local A 1; :put $a",
   "valid": true
  }
 ]

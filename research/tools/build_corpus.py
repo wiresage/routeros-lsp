@@ -21,8 +21,10 @@ SUITES = [
     ("suite8_adjacency", "suite8.txt"),
     ("suite9_wordchars", "suite9.txt"),
     ("suite10_expr", "suite10.txt"),
+    ("suite11_closers", "suite11.txt"),
+    ("suite12_misc", "suite12.txt"),
 ]
-LINE = re.compile(r"^(?P<id>\S+)\s+(?P<mode>check|run|eval)\s+.*?\s+-> (?P<verdict>.*)$")
+LINE = re.compile(r"^(?P<id>\S+)\s+(?P<mode>check)\s+.*\s-> (?P<verdict>(?:OK|ERR: |\?\? ).*)$")
 ERR = re.compile(r"^ERR: (?P<msg>.*?) \(line (?P<line>\d+) column (?P<col>\d+)\)")
 
 
@@ -38,7 +40,7 @@ def parse_results(path):
     out = {}
     for raw in path.read_text(encoding="utf-8").splitlines():
         m = LINE.match(raw)
-        if not m or m["mode"] != "check":
+        if not m:
             continue
         verdict = m["verdict"].split("   #")[0]
         verdict = re.sub(r"\s*\[Script Error: found \d+ error\(s\) in import file\]\s*$", "", verdict).strip()

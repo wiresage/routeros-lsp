@@ -1,0 +1,53 @@
+version: 7.21.4 (long-term)
+
+== NON-ASCII OUTSIDE STRINGS
+u10  check :put é                                                       -> ERR: syntax error (line 1 column 6)   [Script Error: found 1 error(s) in import file]   # accented letter as a bare word
+u11  check :put aé                                                      -> ERR: expected end of command (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # accented letter inside a bare word
+u12  check /system identity set name=é                                  -> ERR: syntax error (line 1 column 27)   [Script Error: found 1 error(s) in import file]   # accented letter as a parameter value
+u13  check :local é 1                                                   -> ERR: syntax error (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # accented letter as a variable name
+u14  check :log info é                                                  -> ERR: syntax error (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # accented letter as the message
+u15  check :put 日本                                                      -> ERR: syntax error (line 1 column 6)   [Script Error: found 1 error(s) in import file]   # CJK as a bare word
+u16  check :put $é                                                      -> ERR: syntax error (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # accented letter in a variable read
+u17  check :put "é" ; # é                                               -> OK   # accented letter in a comment after ;
+u18  check /system identity set name="é"                                -> OK   # quoted accented value
+
+== STATEMENTS THAT START WITH A LITERAL
+u20  check "abc"                                                        -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # a string as the whole statement
+u21  check { "abc" }                                                    -> ERR: expected command name (line 1 column 3)   [Script Error: found 1 error(s) in import file]   # a string as a statement in a block
+u22  check 42                                                           -> ERR: bad command name 42 (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # a number as the whole statement
+u23  check (1+2)                                                        -> OK   # a group as the whole statement
+u24  check [:len "a"]                                                   -> OK   # a substitution as the whole statement
+u25  check $x                                                           -> OK   # a variable as the whole statement
+u26  check { 1; 2 }                                                     -> ERR: bad command name 1 (line 1 column 3)   [Script Error: found 1 error(s) in import file]   # numbers as statements in a block
+u27  check =                                                            -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # a lone equals
+u28  check =x                                                           -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # equals then word
+u29  check !x                                                           -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # bang word as a statement
+u30  check -                                                            -> ERR: bad command name - (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # a lone hyphen
+u31  check .                                                            -> ERR: bad command name . (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # a lone dot
+u32  check ,                                                            -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # a lone comma
+u33  check ~                                                            -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # a lone tilde
+u34  check *1                                                           -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # an id as a statement
+u35  check :                                                            -> OK   # a lone colon
+u36  check :                                                            -> OK   # colon and space
+u37  check ::                                                           -> ERR: expected command name (line 1 column 2)   [Script Error: found 1 error(s) in import file]   # double colon
+u38  check :;                                                           -> OK   # colon and semicolon
+u39  check /;                                                           -> OK   # slash and semicolon
+u40  check ;                                                            -> OK   # a lone semicolon
+u41  check {;}                                                          -> OK   # semicolon in a block
+u42  check [;]                                                          -> OK   # semicolon in a substitution
+u43  check :put [                                                       -> ERR: syntax error (line 2 column 7)   [Script Error: found 1 error(s) in import file]   # unclosed substitution
+u44  check :put ]                                                       -> ERR: Script Error: missing value(s) of argument(s) message   [Script Error: found 1 error(s) in import file]   # stray ]
+u45  check :put )                                                       -> ERR: syntax error (line 1 column 6)   [Script Error: found 1 error(s) in import file]   # stray )
+u46  check { :put 1 ]                                                   -> ERR: missing closing brace (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # mismatched closer
+u47  check :put [:len (1]                                               -> ERR: syntax error (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # mismatched closer in a group
+u48  check :put ("a"\n:put 2                                            -> ERR: syntax error (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # unclosed group before another command
+
+== CASE AND SPELLING OF KEYWORDS
+u50  check :PUT 1                                                       -> ERR: expected command name (line 1 column 2)   [Script Error: found 1 error(s) in import file]   # uppercase command
+u51  check :put TRUE                                                    -> OK   # uppercase true
+u52  check :put (TRUE and FALSE)                                        -> OK   # uppercase word operators
+u53  check :put (1 AND 2)                                               -> OK   # uppercase AND
+u54  check :put (1 And 2)                                               -> OK   # mixed case And
+u55  check :local A 1; :put $a                                          -> OK   # different case variable
+
+cleanup: probe files left on the router: 0
