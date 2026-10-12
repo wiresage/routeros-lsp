@@ -2,6 +2,7 @@
 :global reportRecipient "ops@example.com"
 :global backupPrefix "nightly"
 
+{
 :local sysName [/system identity get name]
 :local stamp ([/system clock get date] . "-" . [/system clock get time])
 :local fileName ($backupPrefix . "-" . $sysName)
@@ -26,3 +27,4 @@
 
 /tool e-mail send to=$reportRecipient subject="Backup $sysName" \
     body="Backup $fileName finished at $stamp. Memory used: $pct%"
+}

@@ -147,6 +147,36 @@ export const RULES = {
     severity: 'error',
     summary: 'Brackets nested deeper than the parser follows.',
   },
+  'vars/set-undeclared': {
+    source: 'device',
+    severity: 'error',
+    summary: ':set of a variable that is not declared in the same or an enclosing block.',
+    ambiguity: ['V-01', 'V-03', 'V-04'],
+  },
+  'vars/undeclared-read': {
+    source: 'doc',
+    severity: 'warning',
+    summary: 'A variable is read but never declared in the file. RouterOS reads it as empty.',
+    ambiguity: ['V-01', 'V-14'],
+  },
+  'vars/local-out-of-scope': {
+    source: 'device',
+    severity: 'warning',
+    summary: 'A local variable is read where its scope has ended, for example on a later top-level line of an imported file.',
+    ambiguity: ['V-03'],
+  },
+  'vars/invalid-name': {
+    source: 'device',
+    severity: 'error',
+    summary: 'A variable name with characters other than letters and digits, written without quotes, or with a "$" where it is declared.',
+    ambiguity: ['V-07'],
+  },
+  'vars/keyword-name': {
+    source: 'doc',
+    severity: 'warning',
+    summary: 'A variable named and, or or in. The documentation reserves them; RouterOS accepts them.',
+    ambiguity: ['V-08'],
+  },
 } as const satisfies Record<string, RuleInfo>;
 
 export type RuleId = keyof typeof RULES;

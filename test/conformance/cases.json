@@ -5670,5 +5670,548 @@
   "note": "convert transform",
   "source": ":put [:convert transform=uc \"abc\"]",
   "valid": true
+ },
+ {
+  "id": "d1",
+  "section": "what makes :set legal",
+  "note": "local in the same statement",
+  "source": ":local a; :set a 1",
+  "valid": true
+ },
+ {
+  "id": "d2",
+  "section": "what makes :set legal",
+  "note": "global in the same statement",
+  "source": ":global a; :set a 1",
+  "valid": true
+ },
+ {
+  "id": "d3",
+  "section": "what makes :set legal",
+  "note": "set before the declaration",
+  "source": ":set a 1; :local a",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 6
+ },
+ {
+  "id": "d4",
+  "section": "what makes :set legal",
+  "note": "set in a block inside the declaring block",
+  "source": "{ :local a; { :set a 1 } }",
+  "valid": true
+ },
+ {
+  "id": "d5",
+  "section": "what makes :set legal",
+  "note": "set after the declaring inner block ended",
+  "source": "{ { :local a }; :set a 1 }",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 22
+ },
+ {
+  "id": "d6",
+  "section": "what makes :set legal",
+  "note": "set inside do={} of the declaring block",
+  "source": ":local a; :if (true) do={ :set a 1 }",
+  "valid": true
+ },
+ {
+  "id": "d7",
+  "section": "what makes :set legal",
+  "note": "set of the loop variable of :for",
+  "source": ":for i from=1 to=2 do={ :set i 5 }",
+  "valid": true
+ },
+ {
+  "id": "d8",
+  "section": "what makes :set legal",
+  "note": "set of the loop variable of :foreach",
+  "source": ":foreach i in={1;2} do={ :set i 5 }",
+  "valid": true
+ },
+ {
+  "id": "d9",
+  "section": "what makes :set legal",
+  "note": "set of the value variable of :foreach k,v",
+  "source": ":foreach k,v in={1;2} do={ :set v 5 }",
+  "valid": true
+ },
+ {
+  "id": "d10",
+  "section": "what makes :set legal",
+  "note": "set of a function argument name",
+  "source": ":global f do={ :set a 5 }",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 21
+ },
+ {
+  "id": "d11",
+  "section": "what makes :set legal",
+  "note": "set of a positional argument",
+  "source": ":global f do={ :set 1 5 }",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 21
+ },
+ {
+  "id": "d12",
+  "section": "what makes :set legal",
+  "note": "local inside a function",
+  "source": ":global f do={ :local a; :set a 1 }",
+  "valid": true
+ },
+ {
+  "id": "d13",
+  "section": "what makes :set legal",
+  "note": "global from the outer statement used in a function",
+  "source": ":global g; :global f do={ :set g 1 }",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 32
+ },
+ {
+  "id": "d14",
+  "section": "what makes :set legal",
+  "note": "global redeclared in the function",
+  "source": ":global f do={ :global g; :set g 1 }",
+  "valid": true
+ },
+ {
+  "id": "d15",
+  "section": "what makes :set legal",
+  "note": "outer local used in a function",
+  "source": ":local a; :global f do={ :set a 1 }",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 31
+ },
+ {
+  "id": "d16",
+  "section": "what makes :set legal",
+  "note": "set through $a",
+  "source": ":local a; :set $a 1",
+  "valid": true
+ },
+ {
+  "id": "d17",
+  "section": "what makes :set legal",
+  "note": "set of an array element, base declared",
+  "source": ":local a {1;2}; :set ($a->0) 5",
+  "valid": true
+ },
+ {
+  "id": "d18",
+  "section": "what makes :set legal",
+  "note": "set of an array element, base not declared",
+  "source": ":set ($nope->0) 5",
+  "valid": true
+ },
+ {
+  "id": "d19",
+  "section": "what makes :set legal",
+  "note": "quoted name, declared",
+  "source": ":local \"a b\"; :set \"a b\" 1",
+  "valid": true
+ },
+ {
+  "id": "d20",
+  "section": "what makes :set legal",
+  "note": "quoted name, not declared",
+  "source": ":set \"a b\" 1",
+  "valid": true
+ },
+ {
+  "id": "d21",
+  "section": "what makes :set legal",
+  "note": "set inside a substitution",
+  "source": ":local a; [:set a 1]",
+  "valid": true
+ },
+ {
+  "id": "d22",
+  "section": "what makes :set legal",
+  "note": "set inside :put substitution",
+  "source": ":local a; :put [:set a 1]",
+  "valid": true
+ },
+ {
+  "id": "d23",
+  "section": "what makes :set legal",
+  "note": "set of the :onerror variable",
+  "source": ":onerror e in={ } do={ :set e 1 }",
+  "valid": true
+ },
+ {
+  "id": "d24",
+  "section": "what makes :set legal",
+  "note": "local inside :do",
+  "source": ":do { :local a; :set a 1 } on-error={ }",
+  "valid": true
+ },
+ {
+  "id": "d25",
+  "section": "what makes :set legal",
+  "note": "outer local inside :do",
+  "source": ":local a; :do { :set a 1 } on-error={ }",
+  "valid": true
+ },
+ {
+  "id": "d26",
+  "section": "what makes :set legal",
+  "note": "set with no value (removes the variable)",
+  "source": ":local a; :set a",
+  "valid": true
+ },
+ {
+  "id": "d27",
+  "section": "what makes :set legal",
+  "note": "unset is not a command",
+  "source": ":local a; :unset a",
+  "valid": false,
+  "message": "bad command name unset",
+  "line": 1,
+  "column": 12
+ },
+ {
+  "id": "d28",
+  "section": "what makes :set legal",
+  "note": "declared twice",
+  "source": ":local a 1; :local a 2",
+  "valid": true
+ },
+ {
+  "id": "d29",
+  "section": "what makes :set legal",
+  "note": "global then local of one name",
+  "source": ":global a; :local a; :set a 1",
+  "valid": true
+ },
+ {
+  "id": "d30",
+  "section": "what makes :set legal",
+  "note": "contextual variable name",
+  "source": ":set leaseBound 1",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 6
+ },
+ {
+  "id": "d31",
+  "section": "what makes :set legal",
+  "note": "positional name at top level",
+  "source": ":set 1 5",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 6
+ },
+ {
+  "id": "d32",
+  "section": "what makes :set legal",
+  "note": "undeclared set inside a declaration value",
+  "source": ":local a [:set b 1]",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 16
+ },
+ {
+  "id": "d33",
+  "section": "what makes :set legal",
+  "note": "menu set is a different command",
+  "source": ":local a; /ip address set 0 comment=$a",
+  "valid": true
+ },
+ {
+  "id": "d34",
+  "section": "what makes :set legal",
+  "note": "local of the outer function used in a nested function",
+  "source": ":global f do={ :local x; :local g do={ :set x 1 } }",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 45
+ },
+ {
+  "id": "d35",
+  "section": "what makes :set legal",
+  "note": "local inside while",
+  "source": ":while (false) do={ :local t; :set t 1 }",
+  "valid": true
+ },
+ {
+  "id": "d36",
+  "section": "what makes :set legal",
+  "note": "outer local inside while",
+  "source": ":local t; :while (false) do={ :set t 1 }",
+  "valid": true
+ },
+ {
+  "id": "d37",
+  "section": "what makes :set legal",
+  "note": "outer loop variable in an inner loop",
+  "source": ":for i from=1 to=2 do={ :for j from=1 to=2 do={ :set i 1 } }",
+  "valid": true
+ },
+ {
+  "id": "d38",
+  "section": "what makes :set legal",
+  "note": "undeclared inside :retry",
+  "source": ":retry command={ :set q 1 } delay=1 max=1",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 23
+ },
+ {
+  "id": "n1",
+  "section": "characters in a declared name",
+  "note": "underscore",
+  "source": ":local a_b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n2",
+  "section": "characters in a declared name",
+  "note": "hyphen",
+  "source": ":local a-b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n3",
+  "section": "characters in a declared name",
+  "note": "dot",
+  "source": ":local a.b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n4",
+  "section": "characters in a declared name",
+  "note": "colon",
+  "source": ":local a:b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n5",
+  "section": "characters in a declared name",
+  "note": "slash",
+  "source": ":local a/b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n6",
+  "section": "characters in a declared name",
+  "note": "digit first",
+  "source": ":local 1a",
+  "valid": true
+ },
+ {
+  "id": "n7",
+  "section": "characters in a declared name",
+  "note": "capitals",
+  "source": ":local A1",
+  "valid": true
+ },
+ {
+  "id": "n8",
+  "section": "characters in a declared name",
+  "note": "underscore in :global",
+  "source": ":global a_b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 10
+ },
+ {
+  "id": "n9",
+  "section": "characters in a declared name",
+  "note": "hyphen in :global",
+  "source": ":global a-b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 10
+ },
+ {
+  "id": "n10",
+  "section": "characters in a declared name",
+  "note": "underscore name then set",
+  "source": ":local a_b; :set a_b 1",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n11",
+  "section": "characters in a declared name",
+  "note": "underscore loop variable",
+  "source": ":for a_b from=1 to=2 do={ }",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 7
+ },
+ {
+  "id": "n12",
+  "section": "characters in a declared name",
+  "note": "underscore foreach variable",
+  "source": ":foreach a_b in={1} do={ }",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 11
+ },
+ {
+  "id": "n13",
+  "section": "characters in a declared name",
+  "note": "hyphen foreach variable",
+  "source": ":foreach a-b in={1} do={ }",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 11
+ },
+ {
+  "id": "n14",
+  "section": "characters in a declared name",
+  "note": "underscore in the second foreach variable",
+  "source": ":foreach a,b_c in={1} do={ }",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 13
+ },
+ {
+  "id": "n15",
+  "section": "characters in a declared name",
+  "note": "quoted underscore",
+  "source": ":local \"a_b\"",
+  "valid": true
+ },
+ {
+  "id": "n16",
+  "section": "characters in a declared name",
+  "note": "comma",
+  "source": ":local a,b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n17",
+  "section": "characters in a declared name",
+  "note": "name then value word",
+  "source": ":local a b",
+  "valid": true
+ },
+ {
+  "id": "n18",
+  "section": "characters in a declared name",
+  "note": "named form",
+  "source": ":local a=1",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n19",
+  "section": "characters in a declared name",
+  "note": "dollar name",
+  "source": ":local $a",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 8
+ },
+ {
+  "id": "n20",
+  "section": "characters in a declared name",
+  "note": "no name",
+  "source": ":local",
+  "valid": false,
+  "message": "Script Error: missing value of argument name"
+ },
+ {
+  "id": "n21",
+  "section": "characters in a declared name",
+  "note": "global with no name",
+  "source": ":global",
+  "valid": false,
+  "message": "Script Error: missing value of argument name"
+ },
+ {
+  "id": "n22",
+  "section": "characters in a declared name",
+  "note": "underscore with value",
+  "source": ":local a_b 1",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 9
+ },
+ {
+  "id": "n23",
+  "section": "characters in a declared name",
+  "note": "underscore in :set",
+  "source": ":set a_b 1",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 6
+ },
+ {
+  "id": "n24",
+  "section": "characters in a declared name",
+  "note": "underscore in a read",
+  "source": ":local a; :put $a_b",
+  "valid": false,
+  "message": "expected end of command",
+  "line": 1,
+  "column": 18
+ },
+ {
+  "id": "n25",
+  "section": "characters in a declared name",
+  "note": "quoted name of a plain declared name",
+  "source": ":local a; :set \"a\" 1",
+  "valid": true
+ },
+ {
+  "id": "n26",
+  "section": "characters in a declared name",
+  "note": "case differs",
+  "source": ":local \"A\"; :set a 1",
+  "valid": false,
+  "message": "syntax error",
+  "line": 1,
+  "column": 18
  }
 ]

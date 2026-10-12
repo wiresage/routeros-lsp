@@ -1,3 +1,4 @@
+{
 :local a 10
 :local b 3
 :put ($a + $b)
@@ -23,3 +24,4 @@
 :put (-$a)
 :put (!true)
 :put ([:len "abc"] * 2)
+}

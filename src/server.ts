@@ -21,7 +21,7 @@ export function createServer(connection: Connection): void {
   const warn = (message: string): void => connection.console.warn(`${NAME}: ${message}`);
 
   async function validate(document: TextDocument): Promise<void> {
-    const diagnostics = toDiagnostics(document, { severities: settings.severities });
+    const diagnostics = toDiagnostics(document, settings);
     await connection.sendDiagnostics({ uri: document.uri, version: document.version, diagnostics });
   }
 

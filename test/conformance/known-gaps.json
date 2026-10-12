@@ -55,16 +55,14 @@
  "y33": "needs the command database (M3): value or parameter form for this command",
  "y34": "needs the command database (M3): value or parameter form for this command",
  "y37": "needs the command database (M3): value or parameter form for this command",
- "v5": "needs the binder (M2): variable rules",
- "i2": "needs the binder (M2): variable rules",
- "i3": "needs the binder (M2): variable rules",
  "z33": "RouterOS quirk, not modelled",
  "e26": "RouterOS quirk, not modelled",
  "y16": "deliberate: any word starting with # after the first word is reported; M3 replaces this heuristic with an argument-count check",
- "h25": "needs the binder (M2): :set of a name not declared in the same top-level statement",
- "h26": "needs the binder (M2): :set of a name not declared in the same top-level statement",
  "h50": "needs the command database (M3): unknown parameter or too many arguments",
  "h61": "RouterOS quirk, not modelled: constant-folded time arithmetic fails when compiling",
  "h68": "needs the command database (M3): unknown command or menu name",
- "h69": "needs the command database (M3): unknown command or menu name"
+ "h69": "needs the command database (M3): unknown command or menu name",
+ "d27": "needs the command database (M3): unknown command or menu name",
+ "n20": "needs the command database (M3): missing required argument",
+ "n21": "needs the command database (M3): missing required argument"
 }

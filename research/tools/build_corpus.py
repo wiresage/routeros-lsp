@@ -24,6 +24,7 @@ SUITES = [
     ("suite11_closers", "suite11.txt"),
     ("suite12_misc", "suite12.txt"),
     ("suite13_scope", "suite13.txt"),
+    ("suite14_declare", "suite14.txt"),
 ]
 LINE = re.compile(r"^(?P<id>\S+)\s+(?P<mode>check)\s+.*\s-> (?P<verdict>(?:OK|ERR: |\?\? ).*)$")
 ERR = re.compile(r"^ERR: (?P<msg>.*?) \(line (?P<line>\d+) column (?P<col>\d+)\)")

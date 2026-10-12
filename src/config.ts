@@ -1,11 +1,24 @@
 import { RULES, type RuleId, type Severity } from './rules.js';
 
+export type ScopeMode = 'import' | 'script';
+
 export interface Settings {
   /** Overrides the default severity of individual rules. 'off' disables a rule. */
   readonly severities: Partial<Record<RuleId, Severity>>;
+  /**
+   * How the file is run. 'import' (the default) treats every top-level command as a scope of its own, which is what
+   * /import does and what pasting into the terminal does. 'script' treats the whole file as one scope, as in the
+   * source of a /system script.
+   */
+  readonly scope: ScopeMode;
+  /** Variables that the environment provides and that are therefore never reported as undeclared. */
+  readonly contextVariables: readonly string[];
 }
 
-export const DEFAULT_SETTINGS: Settings = { severities: {} };
+/** Variables a DHCP server sets for a lease script (docs/ambiguities.md V-14; the documentation does not list them). */
+export const DEFAULT_CONTEXT_VARIABLES = ['leaseBound', 'leaseServerName', 'leaseActMAC', 'leaseActIP'] as const;
+
+export const DEFAULT_SETTINGS: Settings = { severities: {}, scope: 'import', contextVariables: DEFAULT_CONTEXT_VARIABLES };
 
 const SEVERITIES: readonly string[] = ['error', 'warning', 'information', 'hint', 'off'];
 
@@ -31,5 +44,18 @@ export function parseSettings(raw: unknown, warn: (message: string) => void = ()
       else severities[rule as RuleId] = value as Severity;
     }
   }
-  return { severities };
+
+  let scope: ScopeMode = 'import';
+  if (root['scope'] !== undefined) {
+    if (root['scope'] === 'import' || root['scope'] === 'script') scope = root['scope'];
+    else warn('"scope" must be "import" or "script"');
+  }
+
+  let contextVariables: readonly string[] = DEFAULT_CONTEXT_VARIABLES;
+  const extra = root['contextVariables'];
+  if (extra !== undefined) {
+    if (Array.isArray(extra) && extra.every((v) => typeof v === 'string')) contextVariables = [...DEFAULT_CONTEXT_VARIABLES, ...(extra as string[])];
+    else warn('"contextVariables" must be an array of variable names');
+  }
+  return { severities, scope, contextVariables };
 }

@@ -1,3 +1,4 @@
+{
 :local name "ether1"
 :local n 5
 :put "plain"
@@ -17,3 +18,4 @@
 :put [:tostr 255]
 :put [:tonum "42"]
 :put [:len "häagen"]
+}

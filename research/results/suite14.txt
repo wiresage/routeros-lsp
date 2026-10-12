@@ -1,0 +1,71 @@
+version: 7.21.4 (long-term)
+
+== WHAT MAKES :set LEGAL
+d1   check :local a; :set a 1                                           -> OK   # local in the same statement
+d2   check :global a; :set a 1                                          -> OK   # global in the same statement
+d3   check :set a 1; :local a                                           -> ERR: syntax error (line 1 column 6)   [Script Error: found 1 error(s) in import file]   # set before the declaration
+d4   check { :local a; { :set a 1 } }                                   -> OK   # set in a block inside the declaring block
+d5   check { { :local a }; :set a 1 }                                   -> ERR: syntax error (line 1 column 22)   [Script Error: found 1 error(s) in import file]   # set after the declaring inner block ended
+d6   check :local a; :if (true) do={ :set a 1 }                         -> OK   # set inside do={} of the declaring block
+d7   check :for i from=1 to=2 do={ :set i 5 }                           -> OK   # set of the loop variable of :for
+d8   check :foreach i in={1;2} do={ :set i 5 }                          -> OK   # set of the loop variable of :foreach
+d9   check :foreach k,v in={1;2} do={ :set v 5 }                        -> OK   # set of the value variable of :foreach k,v
+d10  check :global f do={ :set a 5 }                                    -> ERR: syntax error (line 1 column 21)   [Script Error: found 1 error(s) in import file]   # set of a function argument name
+d11  check :global f do={ :set 1 5 }                                    -> ERR: syntax error (line 1 column 21)   [Script Error: found 1 error(s) in import file]   # set of a positional argument
+d12  check :global f do={ :local a; :set a 1 }                          -> OK   # local inside a function
+d13  check :global g; :global f do={ :set g 1 }                         -> ERR: syntax error (line 1 column 32)   [Script Error: found 1 error(s) in import file]   # global from the outer statement used in a function
+d14  check :global f do={ :global g; :set g 1 }                         -> OK   # global redeclared in the function
+d15  check :local a; :global f do={ :set a 1 }                          -> ERR: syntax error (line 1 column 31)   [Script Error: found 1 error(s) in import file]   # outer local used in a function
+d16  check :local a; :set $a 1                                          -> OK   # set through $a
+d17  check :local a {1;2}; :set ($a->0) 5                               -> OK   # set of an array element, base declared
+d18  check :set ($nope->0) 5                                            -> OK   # set of an array element, base not declared
+d19  check :local "a b"; :set "a b" 1                                   -> OK   # quoted name, declared
+d20  check :set "a b" 1                                                 -> OK   # quoted name, not declared
+d21  check :local a; [:set a 1]                                         -> OK   # set inside a substitution
+d22  check :local a; :put [:set a 1]                                    -> OK   # set inside :put substitution
+d23  check :onerror e in={ } do={ :set e 1 }                            -> OK   # set of the :onerror variable
+d24  check :do { :local a; :set a 1 } on-error={ }                      -> OK   # local inside :do
+d25  check :local a; :do { :set a 1 } on-error={ }                      -> OK   # outer local inside :do
+d26  check :local a; :set a                                             -> OK   # set with no value (removes the variable)
+d27  check :local a; :unset a                                           -> ERR: bad command name unset (line 1 column 12)   [Script Error: found 1 error(s) in import file]   # unset is not a command
+d28  check :local a 1; :local a 2                                       -> OK   # declared twice
+d29  check :global a; :local a; :set a 1                                -> OK   # global then local of one name
+d30  check :set leaseBound 1                                            -> ERR: syntax error (line 1 column 6)   [Script Error: found 1 error(s) in import file]   # contextual variable name
+d31  check :set 1 5                                                     -> ERR: syntax error (line 1 column 6)   [Script Error: found 1 error(s) in import file]   # positional name at top level
+d32  check :local a [:set b 1]                                          -> ERR: syntax error (line 1 column 16)   [Script Error: found 1 error(s) in import file]   # undeclared set inside a declaration value
+d33  check :local a; /ip address set 0 comment=$a                       -> OK   # menu set is a different command
+d34  check :global f do={ :local x; :local g do={ :set x 1 } }          -> ERR: syntax error (line 1 column 45)   [Script Error: found 1 error(s) in import file]   # local of the outer function used in a nested function
+d35  check :while (false) do={ :local t; :set t 1 }                     -> OK   # local inside while
+d36  check :local t; :while (false) do={ :set t 1 }                     -> OK   # outer local inside while
+d37  check :for i from=1 to=2 do={ :for j from=1 to=2 do={ :set i 1 } } -> OK   # outer loop variable in an inner loop
+d38  check :retry command={ :set q 1 } delay=1 max=1                    -> ERR: syntax error (line 1 column 23)   [Script Error: found 1 error(s) in import file]   # undeclared inside :retry
+
+== CHARACTERS IN A DECLARED NAME
+n1   check :local a_b                                                   -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # underscore
+n2   check :local a-b                                                   -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # hyphen
+n3   check :local a.b                                                   -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # dot
+n4   check :local a:b                                                   -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # colon
+n5   check :local a/b                                                   -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # slash
+n6   check :local 1a                                                    -> OK   # digit first
+n7   check :local A1                                                    -> OK   # capitals
+n8   check :global a_b                                                  -> ERR: expected end of command (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # underscore in :global
+n9   check :global a-b                                                  -> ERR: expected end of command (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # hyphen in :global
+n10  check :local a_b; :set a_b 1                                       -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # underscore name then set
+n11  check :for a_b from=1 to=2 do={ }                                  -> ERR: expected end of command (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # underscore loop variable
+n12  check :foreach a_b in={1} do={ }                                   -> ERR: expected end of command (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # underscore foreach variable
+n13  check :foreach a-b in={1} do={ }                                   -> ERR: expected end of command (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # hyphen foreach variable
+n14  check :foreach a,b_c in={1} do={ }                                 -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # underscore in the second foreach variable
+n15  check :local "a_b"                                                 -> OK   # quoted underscore
+n16  check :local a,b                                                   -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # comma
+n17  check :local a b                                                   -> OK   # name then value word
+n18  check :local a=1                                                   -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # named form
+n19  check :local $a                                                    -> ERR: syntax error (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # dollar name
+n20  check :local                                                       -> ERR: Script Error: missing value of argument name   [Script Error: found 1 error(s) in import file]   # no name
+n21  check :global                                                      -> ERR: Script Error: missing value of argument name   [Script Error: found 1 error(s) in import file]   # global with no name
+n22  check :local a_b 1                                                 -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # underscore with value
+n23  check :set a_b 1                                                   -> ERR: syntax error (line 1 column 6)   [Script Error: found 1 error(s) in import file]   # underscore in :set
+n24  check :local a; :put $a_b                                          -> ERR: expected end of command (line 1 column 18)   [Script Error: found 1 error(s) in import file]   # underscore in a read
+n25  check :local a; :set "a" 1                                         -> OK   # quoted name of a plain declared name
+n26  check :local "A"; :set a 1                                         -> ERR: syntax error (line 1 column 18)   [Script Error: found 1 error(s) in import file]   # case differs
+
+cleanup: probe files left on the router: 0

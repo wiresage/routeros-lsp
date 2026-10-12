@@ -16,8 +16,10 @@
 :put [$add a=2 b=3]
 :put [$fact 5]
 
-:local compiled [:parse ":put \"parsed\""]
-$compiled
+{
+  :local compiled [:parse ":put \"parsed\""]
+  $compiled
+}
 
 :global withDefault do={
   :local level "info"
