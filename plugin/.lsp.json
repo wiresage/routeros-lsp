@@ -1,0 +1,10 @@
+{
+  "routeros": {
+    "command": "routeros-lsp",
+    "args": ["--stdio"],
+    "extensionToLanguage": {
+      ".rsc": "routeros"
+    },
+    "startupTimeout": 15000
+  }
+}

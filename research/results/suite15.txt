@@ -1,0 +1,18 @@
+version: 7.21.4 (long-term)
+
+== READS ACROSS TOP-LEVEL COMMANDS (output shows the value, or nothing after the =)
+q1   run   :local lspzl 3\n:put ("local-next-line=" . [:tostr $lspzl])  -> OUT: local-next-line=   # local declared on an earlier top-level command
+q2   run   :global lspzh 4\n:put ("global-next-line=" . [:tostr $lspzh] -> OUT: global-next-line=4   # global declared on an earlier top-level command, no redeclaration
+q3   run   :global lspzg 5\n:global lspzf do={ :put ("global-in-functio -> OUT: global-in-function=5   # global read inside a function without redeclaring
+q4   run   :global lspzg3 6\n:global lspzf3 do={ :global lspzg3; :put ( -> OUT: global-redeclared=6   # global redeclared inside the function
+q5   run   { :local lspza 7; :global lspzf2 do={ :put ("outer-local-in- -> OUT: outer-local-in-function=   # outer local read inside a function
+q6   run   { :local lspzb 8; :if (true) do={ :put ("outer-local-in-if=" -> OUT: outer-local-in-if=8   # outer local read inside do= of :if
+q7   run   :global lspzg 9; :global lspzf do={ :put ("arg=" . [:tostr $ -> OUT: arg=1   # named function argument
+q8   run   :global lspzf do={ :put ("positional=" . [:tostr $1]) }; $ls -> OUT: positional=2   # positional function argument
+q9   run   { :local lspzc 1; { :local lspzc 2 }; :put ("shadow=" . [:to -> OUT: shadow=1   # inner declaration of the same name ended
+q10  run   :put ("undeclared=" . [:tostr $lspzneverdeclared])           -> OUT: undeclared=   # never declared
+q11  run   :global lspzg 10\n:global lspzg\n:put ("global-redeclared-em -> OUT: global-redeclared-empty=10   # global redeclared without a value keeps the value
+q12  run   :foreach lspzi in={1;2} do={ :put ("loop=" . [:tostr $lspzi] -> OUT: loop=1 | loop=2 | loop-after=   # loop variable after the loop
+q13  run   :for lspzj from=1 to=2 do={ :local lspzk $lspzj }\n:put ("fo -> OUT: for-after=   # for variable after the loop
+
+cleanup: probe files left on the router: 0

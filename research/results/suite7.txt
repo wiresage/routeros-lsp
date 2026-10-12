@@ -1,0 +1,104 @@
+version: 7.21.4 (long-term)
+
+== NEWLINES INSIDE BRACKETS (docs: silent)
+z1   check :put (1\n+ 2)                                                -> ERR: syntax error (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # newline inside ( )
+z2   check :put [\n:len "a"\n]                                          -> OK   # newline inside [ ]
+z3   check :if (\ntrue\n) do={ :put 1 }                                 -> ERR: syntax error (line 1 column 6) ; expected command name (line 3 column 1)   [Script Error: found 2 error(s) in import file]   # newline right after ( and before )
+z4   check :if (true\nand true) do={ :put 1 }                           -> ERR: syntax error (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # newline before 'and' inside ( )
+z5   check :local a {\na=1;\nb=2\n}                                     -> OK   # array literal over several lines, with ;
+z6   check :local a {\na=1\nb=2\n}                                      -> OK   # array literal over several lines, newline separated
+z7   check :put {1\n2}                                                  -> OK   # array of bare values separated by newline
+z8   check :foreach i in={1;\n2} do={ :put $i }                         -> OK   # newline after ; in an array argument
+z9   check :put (1 +\n2)                                                -> ERR: syntax error (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # newline after an operator inside ( )
+z10  check :put [:len\n"a"]                                             -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # newline between command and argument inside [ ]
+
+== COMMENTS INSIDE BRACKETS AND AFTER BLOCKS (docs: silent)
+z20  check { # comment after brace\n:put 1\n}                           -> OK   # comment right after {
+z21  check {\n# comment line\n:put 1\n}                                 -> OK   # comment line inside a block
+z22  check { :put 1; # comment after ;\n}                               -> OK   # comment after ; inside a block
+z23  check :if (true) do={ :put 1 } # trailing                          -> ERR: expected end of command (line 1 column 26)   [Script Error: found 1 error(s) in import file]   # comment after a closing brace
+z24  check { :put 1 } # trailing                                        -> ERR: expected end of command (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # comment after a closing brace of a plain block
+z25  check :if (true) do={ # c\n:put 1\n}                               -> OK   # comment right after do={
+z26  check :put [ # c\n:len "a"\n]                                      -> OK   # comment right after [
+z27  check :put ( # c\n1)                                               -> ERR: syntax error (line 1 column 8) ; syntax error (line 2 column 2)   [Script Error: found 2 error(s) in import file]   # comment right after (
+z28  check :put 1; # c1\n# c2\n:put 2                                   -> OK   # two comments in a row
+z29  check :put 1\n  # indented comment\n:put 2                         -> OK   # indented comment line
+z30  check :put 1 \\n# comment line after a join\n:put 2                -> OK   # comment line after a backslash join
+z31  check :put 1 \\n   # comment\n                                     -> ERR: expected end of command (line 1 column 4)   [Script Error: found 1 error(s) in import file]   # joined line that starts a comment
+z32  check { :put 1 }\n# after block                                    -> OK   # comment on the line after a block
+z33  check :local a {a=1; # c\nb=2}                                     -> ERR: syntax error (line 1 column 16) ; expected end of command (line 2 column 2)   [Script Error: found 2 error(s) in import file]   # comment after ; in an array literal
+z34  check :local a {\n# c\na=1}                                        -> OK   # comment line inside an array literal
+
+== EMPTY VALUES AND PATH BLOCKS (docs: '[param=[value]]')
+z40  check /system identity set name=                                   -> OK   # named parameter with no value at end of file
+z41  check /system identity set name=;                                  -> OK   # named parameter with no value before ;
+z42  check /system identity set name=\n/system identity print           -> OK   # named parameter with no value before newline
+z43  check /ip address add comment= address=1.1.1.1/32 interface=ether1 -> ERR: expected end of command (line 1 column 33)   [Script Error: found 1 error(s) in import file]   # empty value, next parameter follows
+z44  check /ip { address print }                                        -> OK   # path followed by a block
+z45  check /ip address { print }                                        -> OK   # longer path followed by a block
+z46  check /ip address {\nprint\nprint\n}                               -> OK   # path block with two commands
+z47  check /ip { address { print } }                                    -> OK   # nested path blocks
+z48  check /                                                            -> OK   # slash alone
+z49  check /ip\n/                                                       -> OK   # slash alone after a path
+z50  check /ip address\n..\nroute print                                 -> OK   # double dot on its own line
+z51  check /ip address .. route print                                   -> OK   # double dot between words
+
+== OPERATORS AND OTHER CHARACTERS IN ARGUMENTS (docs: silent)
+z60  check :put a-b                                                     -> OK   # hyphen in a bare word
+z61  check :put -5                                                      -> OK   # negative number as argument
+z62  check :put (-5)                                                    -> OK   # negative number in parentheses
+z63  check :put 5-3                                                     -> OK   # 5-3 as one word
+z64  check :put (5-3)                                                   -> OK   # subtraction without spaces
+z65  check :put (5 - 3)                                                 -> OK   # subtraction with spaces
+z66  check :put (5%2)                                                   -> OK   # percent
+z67  check :put (1<2)                                                   -> OK   # less than without spaces
+z68  check :put (1!=2)                                                  -> OK   # not equal without spaces
+z69  check :put (!true)                                                 -> OK   # logical not
+z70  check :put (1,2)                                                   -> OK   # comma list
+z71  check :put ({1;2}->1)                                              -> OK   # array literal then ->
+z72  check :local a {1;2}; :put $a->1                                   -> ERR: expected end of command (line 1 column 24)   [Script Error: found 1 error(s) in import file]   # -> outside parentheses
+z73  check :put 1,2                                                     -> OK   # bare comma list
+z74  check :put 1.5                                                     -> OK   # dotted number
+z75  check :put 0xFF                                                    -> OK   # hex
+z76  check :put *1A                                                     -> OK   # id literal
+z77  check :put 1d2h3m                                                  -> OK   # time literal
+z78  check :put ::1                                                     -> OK   # ipv6
+z79  check :put 2001:db8::/32                                           -> OK   # ipv6 prefix
+z80  check :put a~b                                                     -> OK   # tilde in a bare word
+z81  check :put a!b                                                     -> OK   # bang in a bare word
+z82  check :put a<b                                                     -> OK   # less-than in a bare word
+z83  check :put a|b                                                     -> OK   # pipe in a bare word
+z84  check :put a&b                                                     -> OK   # ampersand in a bare word
+z85  check :put a+b                                                     -> OK   # plus in a bare word
+z86  check :put a*b                                                     -> OK   # star in a bare word
+z87  check :put a%b                                                     -> OK   # percent in a bare word
+z88  check :put a^b                                                     -> OK   # caret in a bare word
+z89  check :put a@b                                                     -> OK   # at in a bare word
+z90  check :put a?b                                                     -> ERR: expected end of command (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # question mark in a bare word
+z91  check :put a'b                                                     -> ERR: expected end of command (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # apostrophe in a bare word
+z92  check :put a`b                                                     -> ERR: expected end of command (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # backtick in a bare word
+z93  check :put a.b                                                     -> OK   # dot in a bare word
+z94  check :put a<b>c                                                   -> OK   # angle brackets
+
+== TRAILING COMMENT FORMS IN REAL EXPORTS
+z100 check /ip address add address=1.1.1.1/32 interface=ether1 comment= -> ERR: expected end of command (line 1 column 65)   [Script Error: found 1 error(s) in import file]   # trailing comment after arguments
+z101 check /ip address add address=1.1.1.1/32 interface=ether1;# c      -> OK   # comment right after ; with no space
+z102 check /ip address add address=1.1.1.1/32 interface=ether1 ;# c     -> OK   # space then ;#
+z103 check :put 1;\n:put 2;                                             -> OK   # trailing ; on every line
+z104 check   :put 1                                                     -> OK   # leading whitespace
+z105 check 	:put 1                                                      -> OK   # leading tab
+z106 check :put 1 \n                                                    -> OK   # trailing space then newline
+z107 check :put 1\n\n\n:put 2                                           -> OK   # blank lines
+z108 check : put 1                                                      -> OK   # space after the colon
+z109 check / ip address print                                           -> OK   # space after the slash
+z110 check :put "a\"b"                                                  -> OK   # escaped quote inside a string
+z111 check :put "\41"                                                   -> OK   # hex escape
+z112 check :put "a$(1+2)b"                                              -> OK   # expression substitution inside a string
+z113 check :local x 1; :put "a$[:len "xyz"]b"                           -> OK   # command substitution with nested quotes inside a string
+z114 check :put "a$("b")c"                                              -> OK   # expression with a nested string inside a string
+z115 check :put "a$"                                                    -> ERR: syntax error (line 2 column 10)   [Script Error: found 1 error(s) in import file]   # dollar at the end of a string
+z116 check :put "a$ b"                                                  -> ERR: syntax error (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # dollar followed by a space inside a string
+z117 check :put "a$1"                                                   -> OK   # dollar then a digit inside a string
+z118 check :put "a$("                                                   -> ERR: syntax error (line 2 column 11)   [Script Error: found 1 error(s) in import file]   # unterminated $( inside a string
+
+cleanup: probe files left on the router: 0

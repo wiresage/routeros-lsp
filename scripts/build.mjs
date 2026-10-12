@@ -14,7 +14,14 @@ await build({
   target: 'node20',
   sourcemap: false,
   minify: false,
-  banner: { js: '#!/usr/bin/env node' },
+  // The bundled LSP libraries are CommonJS and call require() for Node built-ins, which an ES module does not have.
+  banner: {
+    js: [
+      '#!/usr/bin/env node',
+      "import { createRequire as __createRequire } from 'node:module';",
+      'const require = __createRequire(import.meta.url);',
+    ].join('\n'),
+  },
   logLevel: 'info',
 });
 

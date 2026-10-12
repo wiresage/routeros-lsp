@@ -1,0 +1,21 @@
+{
+ "a21": "needs the command database (M3): value or parameter form for this command",
+ "b10": "RouterOS checks the form of an unnamed item reference when compiling (a number, an id or [find]); not modelled",
+ "b12": "a bare parameter name after an unnamed value; the database does not say which unnamed slot is which",
+ "b20": "a named parameter that an unnamed value already fills; the database does not say which unnamed slot is which",
+ "b21": "a named parameter that an unnamed value already fills; the database does not say which unnamed slot is which",
+ "b22": "a named parameter that an unnamed value already fills; the database does not say which unnamed slot is which",
+ "b7": "RouterOS checks the form of an unnamed item reference when compiling (a number, an id or [find]); not modelled",
+ "b8": "RouterOS checks the form of an unnamed item reference when compiling (a number, an id or [find]); not modelled",
+ "e26": "RouterOS quirk, not modelled",
+ "h61": "RouterOS quirk, not modelled: constant-folded time arithmetic fails when compiling",
+ "p37": "needs the command database (M3): value or parameter form for this command",
+ "r7": "needs the command database (M3): value or parameter form for this command",
+ "r8": "needs the command database (M3): value or parameter form for this command",
+ "y30": "needs the command database (M3): value or parameter form for this command",
+ "y32": "needs the command database (M3): value or parameter form for this command",
+ "y33": "needs the command database (M3): value or parameter form for this command",
+ "y34": "needs the command database (M3): value or parameter form for this command",
+ "y37": "needs the command database (M3): value or parameter form for this command",
+ "z33": "RouterOS quirk, not modelled"
+}

@@ -1,0 +1,65 @@
+version: 7.21.4 (long-term)
+
+== READING AN UNDECLARED VARIABLE
+h1   check :put $nope                                                   -> OK   # bare argument
+h2   check :put ($nope)                                                 -> OK   # alone in a group
+h3   check :put ($nope + 1)                                             -> OK   # in arithmetic
+h4   check :if ($nope = 1) do={ :put 1 }                                -> OK   # in a condition
+h5   check :if ($nope) do={ :put 1 }                                    -> OK   # alone in a condition
+h6   check :log info $nope                                              -> OK   # second argument
+h7   check /system identity set name=$nope                              -> OK   # named parameter value
+h8   check :put "a $nope b"                                             -> OK   # interpolated in a string
+h9   check :put "a $(1 + 2) b"                                          -> OK   # expression in a string
+h10  check :put "$($nope + 1)"                                          -> OK   # undeclared inside an expression in a string
+h11  check $nope 1                                                      -> OK   # call of an undeclared function
+h12  check :put [$nope 1]                                               -> OK   # call inside a substitution
+h13  check :while ($nope < 5) do={ }                                    -> OK   # undeclared in a while condition
+h14  check :do { } while=($nope < 3)                                    -> OK   # undeclared in do-while
+h15  check :for i from=1 to=$nope do={ }                                -> OK   # undeclared as a loop bound
+h16  check :foreach i in=$nope do={ }                                   -> OK   # undeclared as the iterated value
+h17  check :put ($nope->0)                                              -> OK   # undeclared array access
+h18  check :local a $nope                                               -> OK   # initialiser
+h19  check :local a ($nope)                                             -> OK   # initialiser in a group
+h20  check :local x 1; :put ($x + $nope)                                -> OK   # declared plus undeclared
+h21  check { :local x 1 }; :put ($x)                                    -> OK   # variable declared in a block that ended
+h22  check :local x 1\n:put ($x)                                        -> OK   # local on an earlier top-level line
+h23  check :local x 1\n:put $x                                          -> OK   # local on an earlier line, plain read
+h24  check :global g 1\n:put ($g)                                       -> OK   # global on an earlier line, group read
+h25  check :global g 1\n:set g 2                                        -> ERR: syntax error (line 2 column 6)   [Script Error: found 1 error(s) in import file]   # set of a global declared on an earlier line
+h26  check :global g\n:set g 2                                          -> ERR: syntax error (line 2 column 6)   [Script Error: found 1 error(s) in import file]   # global declared without a value, then set
+h27  check :put ($1)                                                    -> OK   # positional name in a group at top level
+h28  check :put ($a)                                                    -> OK   # named function argument name at top level
+h29  check :global f do={ :put ($a + 1) }                               -> OK   # function argument inside a group
+h30  check :global f do={ :put ($1) }                                   -> OK   # positional argument inside a group
+h31  check :global f do={ :local y ($a) }                               -> OK   # function argument as an initialiser
+h32  check :put ($leaseBound)                                           -> OK   # lease script variable, undeclared here
+h33  check :put (nope)                                                  -> OK   # bare name in a group
+h34  check :put (nope + 1)                                              -> OK   # bare name in arithmetic
+h35  check :put ($nope = nil)                                           -> OK   # compare with nil
+h36  check :put ([:typeof $nope])                                       -> OK   # typeof an undeclared name
+h37  check :if (!any $nope) do={ }                                      -> OK   # any is not an operator
+h38  check :if ([:typeof $nope] = "nothing") do={ }                     -> OK   # typeof comparison
+
+== CRLF AND LINE JOINS
+h50  check :put 1 \\r\n  + 2                                            -> ERR: expected end of command (line 1 column 3)   [Script Error: found 1 error(s) in import file]   # backslash CRLF as a join
+h51  check /ip address\r\nadd address=1.1.1.1/32 \\r\n    interface=eth -> OK   # CRLF file with a join
+h52  check :put "a\\r\nb"                                               -> OK   # CRLF join inside a string
+h53  check :put 1\r\n:put 2\r\n                                         -> OK   # plain CRLF
+h54  check :put 1 \\n  :put 2                                           -> ERR: expected end of command (line 1 column 3)   [Script Error: found 1 error(s) in import file]   # LF join then a second command (missing ;)
+h55  check /ip address add address=1.1.1.1/32 \\r\ninterface=ether1     -> OK   # CRLF join, no indent
+h56  check /ip address add address=1.1.1.1/32 \\rinterface=ether1       -> OK   # CR-only join
+
+== EXPRESSIONS FROM REAL SCRIPTS
+h60  check :put (24h / 4)                                               -> OK   # time divided
+h61  check :local u 1d; :put ($u - 1w2d)                                -> ERR: Script Error: cannot arithmetically negate ip address   [Script Error: found 1 error(s) in import file]   # time minus compound time
+h62  check :put (1w2d)                                                  -> OK   # compound week time
+h63  check :put (1d / 2)                                                -> OK   # day divided
+h64  check :put (192.168.1.1 & 255.255.255.0)                           -> OK   # address mask
+h65  check :put (10.0.0.0/8 . "")                                       -> OK   # prefix concatenated
+h66  check :put (-$nope)                                                -> OK   # negated undeclared
+h67  check :local a 1; :put (-$a)                                       -> OK   # negated declared
+h68  check :put [:toupper abc]                                          -> ERR: bad command name toupper (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # no such command
+h69  check :put [:tolower "ABC"]                                        -> ERR: bad command name tolower (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # tolower
+h70  check :put [:convert transform=uc "abc"]                           -> OK   # convert transform
+
+cleanup: probe files left on the router: 0

@@ -1,0 +1,18 @@
+version: 7.21.4 (long-term)
+
+== NO SPACE AFTER A CLOSING BRACKET
+k20  check :if (true) do={:put 1}else={:put 2}                          -> ERR: expected end of command (line 1 column 23)   [Script Error: found 1 error(s) in import file]   # }else= with no space
+k21  check :if (true)do={:put 1}                                        -> ERR: expected end of command (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # )do= with no space
+k22  check :foreach i in={1;2}do={:put $i}                              -> ERR: expected end of command (line 1 column 20)   [Script Error: found 1 error(s) in import file]   # }do= with no space
+k23  check :put [:len "a"]                                              -> OK   # baseline substitution
+k24  check :if ([:len "a"]>0)do={}                                      -> ERR: expected end of command (line 1 column 19)   [Script Error: found 1 error(s) in import file]   # ]) then do=
+k25  check :do {:put 1}while=(false)                                    -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # }while= with no space
+k26  check :do {:put 1}on-error={}                                      -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # }on-error= with no space
+k27  check :put (1)                                                     -> OK   # baseline group
+k28  check :local a {1;2}; :put ($a)                                    -> OK   # baseline
+k29  check /ip address {print}                                          -> OK   # path block with no spaces inside
+k30  check :if (true) do={:put 1}  else={:put 2}                        -> OK   # two spaces before else
+k31  check :foreach i in=[:toarray "1,2"]do={:put $i}                   -> ERR: expected end of command (line 1 column 31)   [Script Error: found 1 error(s) in import file]   # ]do= with no space
+k32  check :if (true) do={:put 1} else={:put 2}:put 3                   -> ERR: expected end of command (line 1 column 37)   [Script Error: found 1 error(s) in import file]   # command glued after the else block
+
+cleanup: probe files left on the router: 0

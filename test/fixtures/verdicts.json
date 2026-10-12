@@ -1,0 +1,90 @@
+{
+ "arrays.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "backup-and-report.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "comments.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "dhcp-lease-script.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "events.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "firewall-basic.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "functions.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "loops.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "netwatch-notify.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "onerror.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "operators.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "paths.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "queries.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "strings.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "time-math.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "wireguard.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "export-plain-a.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "export-terse-b.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "export-verbose-a.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "export-verbose-b.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "windows.rsc": {
+  "valid": true,
+  "errors": []
+ },
+ "classic-mac.rsc": {
+  "valid": true,
+  "errors": []
+ }
+}

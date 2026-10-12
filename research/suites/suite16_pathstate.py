@@ -1,0 +1,37 @@
+# Suite 16: menu path state. Which lines change the current path, and what is a relative word resolved against?
+# `/ip address` has the commands add, print, set ...; `/ip route` has add, print ...; `/system identity` has set, get, print.
+# Each entry: (id, mode, snippet, note)
+NL = chr(10)
+PROBES = [
+    "DOES A FULL COMMAND LEAVE THE PATH CHANGED?",
+    ("s1", "check", "/ip address print" + NL + "add address=1.1.1.1/32 interface=ether1", "after a full command, a relative add"),
+    ("s2", "check", "/ip address print" + NL + "print", "after a full command, a relative print"),
+    ("s3", "check", "/ip address" + NL + "print", "after a path-only line, a relative print"),
+    ("s4", "check", "/ip address" + NL + "/ip route print" + NL + "add address=1.1.1.1/32 interface=ether1", "path-only line, then a full command, then a relative add"),
+    ("s5", "check", "/ip address" + NL + "/ip route print" + NL + "add dst-address=0.0.0.0/0 gateway=1.1.1.1", "same, but an add that only /ip route accepts"),
+    ("s6", "check", "/ip address" + NL + "{ /ip route }" + NL + "add dst-address=0.0.0.0/0 gateway=1.1.1.1", "a path change inside a block, then a relative add"),
+    ("s7", "check", "/ip address" + NL + "{ /ip route }" + NL + "add address=1.1.1.1/32 interface=ether1", "same, with the add of the first path"),
+    ("s8", "check", "/ip address; /ip route; add dst-address=0.0.0.0/0 gateway=1.1.1.1", "path changes on one line"),
+    ("s9", "check", "/ip address" + NL + ":put [/ip route print]" + NL + "add address=1.1.1.1/32 interface=ether1", "a full command inside a substitution"),
+    ("s10", "check", "/ip address" + NL + ".." + NL + "route print", "go up, then a relative path"),
+    ("s11", "check", "/ip address" + NL + "route print", "relative word that is not a child of the current path"),
+    ("s12", "check", "/ip address" + NL + "system identity print", "relative word that is a root menu"),
+    ("s13", "check", "/ip address" + NL + "/" + NL + "system identity print", "reset to root, then a root menu"),
+    ("s14", "check", "/ip address" + NL + "put \"x\"", "global command without a colon inside a menu"),
+    ("s15", "check", "/ip address" + NL + ":put \"x\"", "global command with a colon inside a menu"),
+    ("s16", "check", "/ip address" + NL + "local x 1", "local without a colon inside a menu"),
+    ("s17", "check", "/ip address" + NL + ":local x 1", "local with a colon inside a menu"),
+    ("s18", "check", "/ip address" + NL + "add address=1.1.1.1/32 interface=ether1" + NL + "set 0 comment=x", "several commands in a path"),
+    ("s19", "check", "/ip address" + NL + "..add", "dot dot glued to a word"),
+    ("s20", "check", "/ip address" + NL + "/ip route" + NL + "/ip address add address=1.1.1.1/32 interface=ether1", "absolute add while another path is current"),
+    ("s21", "check", "/ip" + NL + "address print", "two-level relative path with a command"),
+    ("s22", "check", "/ip" + NL + "address" + NL + "print", "relative path set over two lines"),
+    ("s23", "check", "/ip" + NL + "address" + NL + "/ip route print" + NL + "print", "relative path, absolute full command, print"),
+    ("s24", "check", ":put 1" + NL + "print", "print at the root"),
+    ("s25", "check", "/ip address" + NL + ":global f do={ add address=1.1.1.1/32 interface=ether1 }", "relative add inside a function body"),
+    ("s26", "check", "/ip address" + NL + ":if (true) do={ print }", "relative print inside do="),
+    ("s27", "check", ":if (true) do={ /ip address }" + NL + "print", "path set inside do=, then a relative print"),
+    ("s28", "check", "/ip address" + NL + "[print]", "relative command in a substitution as a statement"),
+    ("s29", "check", "/ip address" + NL + ":put [print count-only]", "relative command in a substitution argument"),
+    ("s30", "check", "/ip address" + NL + ":foreach i in=[find] do={ :put $i }", "relative find in a substitution"),
+]

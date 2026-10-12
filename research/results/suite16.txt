@@ -1,0 +1,35 @@
+version: 7.21.4 (long-term)
+
+== DOES A FULL COMMAND LEAVE THE PATH CHANGED?
+s1   check /ip address print\nadd address=1.1.1.1/32 interface=ether1   -> ERR: bad command name add (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # after a full command, a relative add
+s2   check /ip address print\nprint                                     -> ERR: bad command name print (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # after a full command, a relative print
+s3   check /ip address\nprint                                           -> OK   # after a path-only line, a relative print
+s4   check /ip address\n/ip route print\nadd address=1.1.1.1/32 interfa -> OK   # path-only line, then a full command, then a relative add
+s5   check /ip address\n/ip route print\nadd dst-address=0.0.0.0/0 gate -> ERR: expected end of command (line 3 column 5)   [Script Error: found 1 error(s) in import file]   # same, but an add that only /ip route accepts
+s6   check /ip address\n{ /ip route }\nadd dst-address=0.0.0.0/0 gatewa -> OK   # a path change inside a block, then a relative add
+s7   check /ip address\n{ /ip route }\nadd address=1.1.1.1/32 interface -> ERR: expected end of command (line 3 column 5)   [Script Error: found 1 error(s) in import file]   # same, with the add of the first path
+s8   check /ip address; /ip route; add dst-address=0.0.0.0/0 gateway=1. -> OK   # path changes on one line
+s9   check /ip address\n:put [/ip route print]\nadd address=1.1.1.1/32  -> OK   # a full command inside a substitution
+s10  check /ip address\n..\nroute print                                 -> OK   # go up, then a relative path
+s11  check /ip address\nroute print                                     -> ERR: bad command name route (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # relative word that is not a child of the current path
+s12  check /ip address\nsystem identity print                           -> ERR: bad command name system (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # relative word that is a root menu
+s13  check /ip address\n/\nsystem identity print                        -> OK   # reset to root, then a root menu
+s14  check /ip address\nput "x"                                         -> ERR: bad command name put (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # global command without a colon inside a menu
+s15  check /ip address\n:put "x"                                        -> OK   # global command with a colon inside a menu
+s16  check /ip address\nlocal x 1                                       -> ERR: bad command name local (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # local without a colon inside a menu
+s17  check /ip address\n:local x 1                                      -> OK   # local with a colon inside a menu
+s18  check /ip address\nadd address=1.1.1.1/32 interface=ether1\nset 0  -> OK   # several commands in a path
+s19  check /ip address\n..add                                           -> OK   # dot dot glued to a word
+s20  check /ip address\n/ip route\n/ip address add address=1.1.1.1/32 i -> OK   # absolute add while another path is current
+s21  check /ip\naddress print                                           -> OK   # two-level relative path with a command
+s22  check /ip\naddress\nprint                                          -> OK   # relative path set over two lines
+s23  check /ip\naddress\n/ip route print\nprint                         -> OK   # relative path, absolute full command, print
+s24  check :put 1\nprint                                                -> ERR: bad command name print (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # print at the root
+s25  check /ip address\n:global f do={ add address=1.1.1.1/32 interface -> OK   # relative add inside a function body
+s26  check /ip address\n:if (true) do={ print }                         -> OK   # relative print inside do=
+s27  check :if (true) do={ /ip address }\nprint                         -> ERR: bad command name print (line 2 column 1)   [Script Error: found 1 error(s) in import file]   # path set inside do=, then a relative print
+s28  check /ip address\n[print]                                         -> OK   # relative command in a substitution as a statement
+s29  check /ip address\n:put [print count-only]                         -> OK   # relative command in a substitution argument
+s30  check /ip address\n:foreach i in=[find] do={ :put $i }             -> OK   # relative find in a substitution
+
+cleanup: probe files left on the router: 0

@@ -1,0 +1,95 @@
+version: 7.21.4 (long-term)
+
+== OPERANDS NEXT TO EACH OTHER
+e1   check :local a 1; :local b 2; :put ($a $b)                         -> OK   # variable, space, variable
+e2   check :put (1 2)                                                   -> OK   # number, space, number
+e3   check :put ("a" "b")                                               -> OK   # string, space, string
+e4   check :local a 1; :put ($a"b")                                     -> OK   # variable then string, no space
+e5   check :put ((1)(2))                                                -> OK   # group then group
+e6   check :local a 1; :local b 2; :put ($a$b)                          -> OK   # variable then variable, no space
+e7   check :put (a b)                                                   -> OK   # bare names with a space
+e8   check :put (1 [:len "a"])                                          -> OK   # number then substitution
+
+== UNARY AND BINARY FORMS
+e10  check :put (- 5)                                                   -> OK   # minus, space, number
+e11  check :local a 1; :put (-$a)                                       -> OK   # minus variable
+e12  check :local a true; :put (! $a)                                   -> OK   # not, space, variable
+e13  check :put (5 -)                                                   -> ERR: syntax error (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # trailing operator
+e14  check :put ()                                                      -> ERR: syntax error (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # empty group
+e15  check :put (1 +)                                                   -> ERR: syntax error (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # plus with no right operand
+e16  check :put ((1))                                                   -> OK   # double parentheses
+e17  check :put (1 + + 2)                                               -> ERR: syntax error (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # two plus signs
+e18  check :put (1,)                                                    -> ERR: syntax error (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # trailing comma
+e19  check :put (.5)                                                    -> OK   # leading dot
+e20  check :put ("a" .)                                                 -> ERR: syntax error (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # concat with no right operand
+e21  check :put (* 2)                                                   -> ERR: syntax error (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # leading star
+e22  check :put (1 * * 2)                                               -> ERR: syntax error (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # two stars
+e23  check :put (1 - - 2)                                               -> OK   # minus minus
+e24  check :put (1 -- 2)                                                -> OK   # double minus joined
+e25  check :put (!!true)                                                -> OK   # double not
+e26  check :put (~1)                                                    -> ERR: Script Error: cannot invert time interval   [Script Error: found 1 error(s) in import file]   # bitwise not
+e27  check :put (1 <> 2)                                                -> OK   # <> operator
+e28  check :put (1 == 2)                                                -> ERR: syntax error (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # == operator
+e29  check :put (1 === 2)                                               -> ERR: syntax error (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # === operator
+e30  check :put (1 =< 2)                                                -> ERR: syntax error (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # =< operator
+e31  check :put (1 & 2)                                                 -> OK   # bitwise and
+e32  check :put (1 &&& 2)                                               -> ERR: syntax error (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # triple ampersand
+e33  check :put (1 ? 2)                                                 -> ERR: syntax error (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # question mark operator
+e34  check :put (1 ; 2)                                                 -> ERR: syntax error (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # semicolon inside a group
+e35  check :put (1 } 2)                                                 -> ERR: syntax error (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # stray brace inside a group
+e36  check :put (1 ] 2)                                                 -> ERR: syntax error (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # stray bracket inside a group
+e37  check :put (1 =)                                                   -> ERR: syntax error (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # equals with no right operand
+e38  check :put (= 1)                                                   -> ERR: syntax error (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # equals with no left operand
+
+== OPERAND KINDS INSIDE A GROUP
+e40  check :put (1.1.1.1)                                               -> OK   # address literal
+e41  check :put (1.1.1.1/24)                                            -> OK   # prefix literal
+e42  check :put (10s)                                                   -> OK   # time literal
+e43  check :put (1d2h)                                                  -> OK   # compound time
+e44  check :put (00:10:00)                                              -> OK   # clock time
+e45  check :put (0xFF)                                                  -> OK   # hex
+e46  check :put (*1A)                                                   -> ERR: syntax error (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # id literal
+e47  check :put (::1)                                                   -> OK   # ipv6
+e48  check :put (true)                                                  -> OK   # true
+e49  check :put (yes)                                                   -> OK   # yes
+e50  check :put (nil)                                                   -> OK   # nil
+e51  check :put (nothing)                                               -> OK   # nothing
+e52  check :put (a-b)                                                   -> OK   # bare name with hyphen
+e53  check :put (a_b)                                                   -> OK   # bare name with underscore
+e54  check :put (a.b)                                                   -> OK   # bare name with dot
+e55  check :put ($"a b")                                                -> OK   # quoted variable name
+e56  check :put ({1;2})                                                 -> OK   # array literal inside a group
+e57  check :put ({})                                                    -> OK   # empty array inside a group
+e58  check :put ([:len "a"] + 1)                                        -> OK   # substitution plus number
+e59  check :put (1 + [:len "a"])                                        -> OK   # number plus substitution
+e60  check :put ("a"->0)                                                -> OK   # -> on a string
+e61  check :put ({1;2}->0)                                              -> OK   # -> on an array literal
+e62  check :local a {1;2}; :put ($a->0)                                 -> OK   # -> on a variable
+e63  check :local a {1;2}; :put ($a -> 0)                               -> OK   # spaced ->
+e64  check :local a {1;2}; :put ($a->(0))                               -> OK   # -> then group
+e65  check :local a {1;2}; :put ($a->$b)                                -> OK   # -> then variable
+
+== COMMENTS AND LAYOUT INSIDE A GROUP
+e70  check :put (1 # c\n)                                               -> ERR: syntax error (line 1 column 9) ; expected command name (line 2 column 1)   [Script Error: found 2 error(s) in import file]   # comment inside a group
+e71  check :put (1 \\n+ 2)                                              -> OK   # joined line inside a group
+e72  check :put (1\\n+ 2)                                               -> OK   # join glued to the operand
+e73  check :put (\\n1)                                                  -> OK   # join right after (
+e74  check :if (true \\n  and false) do={ }                             -> OK   # join before 'and'
+e75  check :put ( 1 )                                                   -> OK   # spaces just inside
+e76  check :put (	1	)                                                   -> OK   # tabs just inside
+
+== STATEMENT FORMS
+e80  check :local a 1; :set a (a+1)                                     -> OK   # set with a bare-name expression
+e81  check :local a 1; :set a $a                                        -> OK   # set from variable
+e82  check :local a 1; :set a a                                         -> OK   # set from bare name
+e83  check :local a 1; :put $a; :put $a                                 -> OK   # two reads
+e84  check :local a (1 + 2); :put $a                                    -> OK   # local initialised by expression
+e85  check :local a 1 + 2                                               -> ERR: expected end of command (line 1 column 12)   [Script Error: found 1 error(s) in import file]   # expression without parentheses as local value
+e86  check :local a [:len "x"] ; :put $a                                -> OK   # local initialised by a command
+e87  check :if (1 = 1) do={ :put 1 } else={ :put 2 }                    -> OK   # if with else
+e88  check :if (1 = 1) do={ :put 1 } else={ :if (2 = 2) do={ :put 2 } } -> OK   # else with nested if
+e89  check :if (1 = 1) do={ :put 1 } else={ :put 2 } :put 3             -> ERR: expected end of command (line 1 column 43)   [Script Error: found 1 error(s) in import file]   # command right after else block on the same line
+e90  check :if (1 = 1) do={ :put 1 }; :put 3                            -> OK   # command after ; following a block
+e91  check :do { :put 1 } on-error={ :put 2 }; :put 3                   -> OK   # do on-error then command
+
+cleanup: probe files left on the router: 0
