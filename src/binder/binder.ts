@@ -169,10 +169,14 @@ class Binder {
   }
 
   private declaration(statement: Statement, scope: Scope, kind: 'local' | 'global'): void {
+    // ":local name=x" names the parameter `name` (or an abbreviation of it); any other key is not a parameter at all
     const first = statement.elements[1];
-    if (first?.kind === 'named') this.namedDeclarations.push(first);
-    const name = this.nameOf(first);
-    const rest = statement.elements.slice(name ? 2 : 1);
+    const key = first?.kind === 'named' ? (first.name.kind === 'word' ? first.name.text : first.name.value) : '';
+    const parameter = key !== '' && ['name', 'value', 'do'].some((p) => p.startsWith(key));
+    if (first?.kind === 'named' && !parameter) this.namedDeclarations.push(first);
+    const byParameter = first?.kind === 'named' && 'name'.startsWith(key) && key !== '' ? first.value : null;
+    const name = this.nameOf(byParameter ?? first);
+    const rest = statement.elements.slice(byParameter ? 2 : name ? 2 : 1);
     if (name) this.nameSites.push({ element: name.element, text: name.text, start: name.start });
 
     for (const element of rest) {

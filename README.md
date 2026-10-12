@@ -90,7 +90,7 @@ The tests need no router. See [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AG
 - [docs/ambiguities.md](docs/ambiguities.md): every gap and conflict, with evidence from RouterOS 7.21.4 and the default used.
 - [research/](research/): the probes that produced that evidence. RouterOS can check a script without running it
   (`/import file.rsc verbose=yes dry-run`), which is the test oracle for this project; `test/conformance/` replays more than
-  700 recorded answers.
+  800 recorded answers.
 
 ## License
 

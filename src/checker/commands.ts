@@ -59,6 +59,12 @@ function nameOf(named: Named): string {
   return named.name.kind === 'word' ? named.name.text : named.name.value;
 }
 
+/**
+ * Commands that accept any parameter, or the same parameter again: the router compiled `:do command=0 zzznope=0` and
+ * `/ip recursive-print zzznope=0` (research/tools/differential.py). Their parameters are not checked.
+ */
+const FREE_FORM = new Set(['do', 'time', 'retry', 'onerror', 'recursive-print', 'shell']);
+
 /** Commands that exist only inside the body of a loop. They are not in the command tree (probes p19, p20). */
 const LOOP_COMMANDS = new Set(['break', 'continue']);
 const LOOP_STATEMENTS = new Set(['for', 'foreach', 'while', 'do']);
@@ -269,7 +275,9 @@ class CommandChecker {
     const table = command.a;
     const allowedUnnamed = command.u ?? 0;
     // find takes any property as a condition (probes w1 to w6)
-    const openConditions = commandPath[commandPath.length - 1] === 'find' && table !== undefined && 'where' in table;
+    const commandName = commandPath[commandPath.length - 1]!;
+    const conditions = commandName === 'find' && table !== undefined && 'where' in table;
+    const openConditions = conditions || FREE_FORM.has(commandName);
     const provided = new Set<string>();
     let unnamed = 0;
     // RouterOS reports the first problem of a command line only. A missing parameter that follows from a mistyped or
@@ -301,7 +309,7 @@ class CommandChecker {
         }
         if (element.text.startsWith('!')) continue;
         const match = matchName(table, element.text);
-        if (openConditions) continue;
+        if (conditions) continue;
         // Where a command takes unnamed values, a word that is only the start of a parameter name is such a value
         // (probes b1 to b3). Where it takes none, only a flag can stand without a value (b5, b6).
         if (match.kind === 'found' && (allowedUnnamed === 0 || match.name === element.text || match.value.f === 1)) {
@@ -320,7 +328,7 @@ class CommandChecker {
         const match = matchName(table, key);
         const end = element.name.end;
         if (match.kind === 'found') {
-          if (provided.has(match.name)) {
+          if (provided.has(match.name) && !openConditions) {
             this.report('schema/duplicate-parameter', `'${match.name}' is given more than once.`, element.start, end);
           }
           provided.add(match.name);

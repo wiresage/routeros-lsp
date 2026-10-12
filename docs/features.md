@@ -30,8 +30,14 @@ Hardware-dependent findings (`schema/unknown-command`, `schema/unknown-parameter
 - Syntax and variable rules follow RouterOS 7.21.4 as measured with `/import dry-run`; see [ambiguities.md](ambiguities.md).
 - The command database is generated from a RouterOS 7.21.4 CHR. Menus of packages a CHR does not have and parameters that exist only
   on some hardware are missing from it. Generate a database from your own router to cover them.
-- Parameter values are not checked: RouterOS itself checks most of them only when a command runs.
+- Parameter values are not checked, although RouterOS rejects some of them when it compiles (a bad value for a yes/no or enumerated
+  parameter, a malformed item number). The server accepts what the router rejects here; it does not report what the router accepts.
+- A flag written with a value (`print detail=yes`) is reported only for commands that take no unnamed arguments, because the database
+  cannot tell a flag from a parameter for the others.
 - The properties used in a `where` expression are not checked.
+- Checked against the router: the checker agreed with RouterOS 7.21.4 on 16,900 command lines generated from the database
+  (research/tools/differential.py) without reporting a single one that the router accepts. It misses about 780 that the router
+  rejects, almost all of the kinds above.
 
 ## Not yet
 
