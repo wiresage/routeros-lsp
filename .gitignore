@@ -1,0 +1,13 @@
+node_modules/
+lib/
+*.tsbuildinfo
+coverage/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+.env
+# research harness
+research/.venv/
+research/**/__pycache__/

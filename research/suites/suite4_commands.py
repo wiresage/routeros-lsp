@@ -1,0 +1,175 @@
+# Suite 4: blocks vs arrays, command forms (colon prefix), menu paths, parameters, where clauses.
+NL = chr(10)
+BS = chr(92)
+PROBES = []
+
+PROBES.append("ARRAYS vs BLOCKS (docs: {..} is both a scope/block and an array literal; no rule given)")
+for pid, snip, note in [
+    ("a1", ":local a {a=1;b=2}", "array as a command argument"),
+    ("a2", ":local a ({a=1})", "parenthesised array"),
+    ("a3", "{ a=1 }", "bare statement that looks like an array"),
+    ("a4", ":put {1;2;3}", "array literal as :put argument"),
+    ("a5", ':local a { "aX"=1; ay=2 }; :put ($a->"aX")', "docs example"),
+    ("a6", ":local a {a1=1}", "key with a digit"),
+    ("a7", ":local a {a-b=1}", "key with a hyphen: docs say quote it"),
+    ("a8", ":local a {A=1}", "key with a capital: docs say quote it"),
+    ("a9", ":local a {1=2}", "numeric key"),
+    ("a10", ":local a {a_b=1}", "key with underscore"),
+    ("a11", ":local a {a=1;}", "trailing semicolon"),
+    ("a12", ":local a {a={b=1}}", "nested keyed array"),
+    ("a13", ":local a (1,2,3); :put ($a->1)", "comma list then ->"),
+    ("a14", ":local a {1;2;3}; :put ($a->1)", "index"),
+    ("a15", ":local a {x=1}; :put ($a->x)", "unquoted key after ->"),
+    ("a16", ':local a {x=1}; :set ($a->"x") 5', "docs example: set one element"),
+    ("a17", ":foreach k,v in={2; aX=1; y=2; 5} do={ :put $k }", "docs example"),
+    ("a18", ":foreach v in={1;2} do={ :put $v }", "one variable"),
+    ("a19", ":local a {:put 1}", "a block as an argument"),
+    ("a20", ":local f do={ :put 1 }", "function value"),
+    ("a21", ":local a {}", "empty braces as an argument"),
+]:
+    PROBES.append((pid, "check", snip, note))
+
+PROBES.append("COLON PREFIX (docs: every global command should start with ':', otherwise it is treated as a variable)")
+for pid, snip, note in [
+    ("p1", 'put "x"', "no colon (docs example inside a script source)"),
+    ("p2", ':put "x"', "with colon"),
+    ("p3", ":put [typeof 1]", "docs example :put [typeof ...] without colon"),
+    ("p4", ":put [:typeof 1]", "with colon"),
+    ("p5", 'do { :put 1 } on-error={ :put 2 }', "docs example for import (no colon)"),
+    ("p6", ':do { :put 1 } on-error={ :put 2 }', "with colon"),
+    ("p7", 'if (true) do={ :put 1 }', "no colon"),
+    ("p8", ':if (true) do={ :put 1 }', "with colon"),
+    ("p9", 'local x 1', "no colon"),
+    ("p10", 'global y', "no colon"),
+    ("p11", ':local x; set x 1', "set without colon on a declared variable"),
+    ("p12", ':put [convert transform=lc "AAA"]', "docs example without colon"),
+    ("p13", ':if (true) do={:put 1} else={:put 2}', "else"),
+    ("p14", ':if (true) do={:put 1} else={}', "empty else"),
+    ("p15", ':while (false) do={}', "while"),
+    ("p16", ':do {} while=(false)', "do..while"),
+    ("p17", ':do {:put 1} on-error={:put 2}', ":do on-error"),
+    ("p18", ':return 1', "return at top level"),
+    ("p19", ':break', "break outside a loop"),
+    ("p20", ':foreach i in={1} do={ :break }', "break inside a loop"),
+    ("p21", ':delay 1s', "delay with a time"),
+    ("p22", ':delay 1', "delay with a bare number"),
+    ("p23", ':log info "x"', "log"),
+    ("p24", ':put "a" "b"', "two unnamed arguments"),
+    ("p25", ':len', "missing argument"),
+    ("p26", ':put', "no argument"),
+    ("p27", ':put [:convert 001 to=hex]', "docs example"),
+    ("p28", ':put [:resolve domain-name="x" port=53]', "docs example uses port="),
+    ("p29", ':put [:resolve "x" server-port=53]', "docs text says server-port"),
+    ("p30", ':put [:tonum value=10]', "value= naming the unnamed parameter"),
+    ("p31", ':put [:serialize value=a to=json]', "docs example"),
+    ("p32", ':onerror e in={:retry command={abc} delay=1 max=2} do={}', "docs example shape"),
+    ("p33", ':foo', "unknown global command"),
+    ("p34", ':put [:foo]', "unknown global command in []"),
+    ("p35", ':if (true) do={ :put 1 } elseif={ :put 2 }', "elseif does not exist"),
+    ("p36", ':if (true) do=:put 1', "do= without a block"),
+    ("p37", ':if true do={ :put 1 }', "condition without parentheses"),
+    ("p38", ':for i from=1 to=3 step=1 do={}', "for with step"),
+    ("p39", ':for i from=1 to=3 do={ :put $i } else={}', "for with else"),
+    ("p40", ':execute {:put 1}', "execute"),
+    ("p41", ':parse ":put 1"', "parse"),
+    ("p42", '$nofunc', "call of an undeclared function"),
+    ("p43", ':global f do={ :put 1 }; $f', "call of a declared function"),
+    ("p44", ':global f do={ :put 1 }; [$f]', "bracketed call as a statement"),
+]:
+    PROBES.append((pid, "check", snip, note))
+
+PROBES.append("MENU PATHS (docs: [prefix][path] command; shows both '/ip route get' and '/interface/print' and 'system/script/run')")
+for pid, snip, note in [
+    ("m1", "/ip address print", "space separated"),
+    ("m2", "/ip/address/print", "slash separated"),
+    ("m3", "/ip/address print", "mixed"),
+    ("m4", "/ip address/print", "mixed"),
+    ("m5", "ip address print", "relative, no leading slash"),
+    ("m6", "system/script/run x", "docs example, no leading slash"),
+    ("m7", "/ip address" + NL + "print", "path line then a relative command"),
+    ("m8", "/ip address; print", "path then ; then command"),
+    ("m9", "/ip" + NL + "address print", "partial path then relative path"),
+    ("m10", "/ip address print; /ip route print", "two commands"),
+    ("m11", ":put 1; /ip address print", "global command then menu command"),
+    ("m12", "/foo bar", "unknown menu"),
+    ("m13", "/ip foo", "unknown submenu"),
+    ("m14", "/ip address foo", "unknown command"),
+    ("m15", "/ip addr print", "abbreviated menu"),
+    ("m16", "/ip address pr", "abbreviated command"),
+    ("m17", "/IP ADDRESS print", "capitals"),
+    ("m18", "/ip address PRINT", "capital command"),
+    ("m19", "/ ip address print", "space after the leading slash"),
+    ("m20", "/ip/ address print", "slash then space"),
+    ("m21", "/ip address .. print", "go back one level"),
+    ("m22", "/ip address /ip route print", "slash in the middle starts a new absolute path?"),
+    ("m23", "/system script environment print", "docs path"),
+    ("m24", "/system/script/environment/print", "docs path, slashes"),
+    ("m25", "/ip firewall filter print", "three levels"),
+    ("m26", "/ip firewall/filter print", "mixed three levels"),
+    ("m27", "/interface/print where name~\"ether\"", "docs example"),
+    ("m28", "/interface/print where (name~\"ether\")=false", "docs example"),
+]:
+    PROBES.append((pid, "check", snip, note))
+
+PROBES.append("PARAMETERS AND FLAGS (docs: [uparam] [param=[value]], flags like count-only, '!param' to unset)")
+for pid, snip, note in [
+    ("r1", "/ip address add address=1.1.1.1/32 interface=ether1", "valid"),
+    ("r2", "/ip address add address=1.1.1.1/32 interface=ether1 nope=1", "unknown parameter"),
+    ("r3", "/ip address add nope=1", "only an unknown parameter"),
+    ("r4", "/ip address add address=abc interface=ether1", "bad value for a typed parameter"),
+    ("r5", "/ip address add", "required parameters missing"),
+    ("r6", "/ip address set 0 nope=1", "set with an unknown parameter"),
+    ("r7", "/ip address set 0 !comment", "unset with !"),
+    ("r8", "/ip address set 0 !nope", "unset of an unknown parameter"),
+    ("r9", "/ip address print count-only", "bare flag"),
+    ("r10", "/ip address print detail brief", "two bare flags"),
+    ("r11", "/ip address print nope", "unknown bare flag"),
+    ("r12", "/ip address print nope=1", "unknown named parameter"),
+    ("r13", "/ip address print without-paging as-value", "docs print parameters"),
+    ("r14", "/ip address print from=0", "docs: from="),
+    ("r15", "/ip address print interval=2", "docs: interval="),
+    ("r16", "/ip address remove 0", "unnamed id"),
+    ("r17", "/ip address remove *1", "internal id"),
+    ("r18", "/ip address remove [find]", "find substitution"),
+    ("r19", "/ip address remove [find address=1.1.1.1/32]", "find with a condition"),
+    ("r20", "/ip address remove [nope]", "unknown command in []"),
+    ("r21", '/ip address add comment="x" address=1.1.1.1/32 interface=ether1', "parameter order"),
+    ("r22", "/ip address add address=1.1.1.1/32 address=2.2.2.2/32 interface=ether1", "duplicate parameter"),
+    ("r23", "/ip address add 1.1.1.1/32 interface=ether1", "unnamed value where a named one is expected"),
+    ("r24", "/ip address set numbers=0 comment=x", "named id parameter"),
+    ("r25", '/ip address set [find where comment="x"] comment=y', "find where"),
+    ("r26", "/ip address enable 0", "enable"),
+    ("r27", "/ip address disable [find]", "disable all"),
+    ("r28", '/ip address add address=$ip interface=ether1', "variable as a value (undeclared)"),
+    ("r29", '/ip address add address=("1.1.1." . 1) interface=ether1', "expression as a value"),
+]:
+    PROBES.append((pid, "check", snip, note))
+
+PROBES.append("WHERE CLAUSES (docs: expressions after where; property names are bare)")
+for pid, snip, note in [
+    ("q1", '/ip address print where address~"1"', "regex"),
+    ("q2", "/ip address print where disabled", "bare boolean property"),
+    ("q3", "/ip address print where !disabled", "negated bare property"),
+    ("q4", "/ip address print where disabled=no and dynamic=no", "and"),
+    ("q5", "/ip address print where disabled or dynamic", "or"),
+    ("q6", "/ip address print where nope=1", "unknown property"),
+    ("q7", "/ip address print where nope", "unknown bare property"),
+    ("q8", '/ip address print where (address~"1")=false', "docs example shape"),
+    ("q9", "/ip address print where .id=*1", "internal id property"),
+    ("q10", "/ip address print where address=1.1.1.1/32", "ip-prefix value"),
+    ("q11", "/ip address print where interface=ether1 && !disabled", "&& in where"),
+    ("q12", "/ip address print where about", "docs: about"),
+    ("q13", '/ip address find where comment="x"', "find where"),
+    ("q14", "/ip address print where address in 1.0.0.0/8", "in"),
+]:
+    PROBES.append((pid, "check", snip, note))
+
+PROBES.append("PATH STATE ACROSS LINES OF A REAL IMPORT (read-only commands only)")
+for pid, snip, note in [
+    ("n1", "/ip address" + NL + "print count-only" + NL, "does the path set by one line apply to the next?"),
+    ("n2", "/ip address" + NL + ":put 1" + NL, "global command after a path line"),
+    ("n3", "/ip address; print count-only" + NL, "same line"),
+    ("n4", "/ip address" + NL + "/ip route print count-only" + NL, "absolute path after a path line"),
+    ("n5", "/ip" + NL + "address" + NL + "print count-only" + NL, "one segment per line"),
+]:
+    PROBES.append((pid, "run", snip, note))

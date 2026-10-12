@@ -1,0 +1,48 @@
+{
+  "name": "routeros-lsp",
+  "version": "0.0.0",
+  "description": "Language Server Protocol implementation for MikroTik RouterOS scripts (.rsc)",
+  "keywords": [
+    "routeros",
+    "mikrotik",
+    "rsc",
+    "lsp",
+    "language-server"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wiresage/routeros-lsp.git"
+  },
+  "homepage": "https://github.com/wiresage/routeros-lsp",
+  "bugs": "https://github.com/wiresage/routeros-lsp/issues",
+  "bin": {
+    "routeros-lsp": "lib/cli.mjs"
+  },
+  "files": [
+    "lib",
+    "data"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --no-error-on-unmatched-pattern src test tools scripts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^20.19.43",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.12.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.2",
+    "vitest": "^5.0.4",
+    "vscode-languageserver": "^10.1.2",
+    "vscode-languageserver-textdocument": "^1.0.15"
+  }
+}

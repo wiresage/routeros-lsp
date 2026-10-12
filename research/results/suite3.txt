@@ -1,0 +1,176 @@
+version: 7.21.4 (long-term)
+== LITERAL TYPES: :put [:typeof <literal>] (docs list the types but not how to write them)
+L0   eval  :put [:typeof 0xFF]                                          -> num   # hex number
+L1   eval  :put [:typeof 0XFF]                                          -> str   # hex, capital X
+L2   eval  :put [:typeof 0xff]                                          -> num   # hex lowercase
+L3   eval  :put [:typeof -5]                                            -> num   # negative
+L4   eval  :put [:typeof 1.5]                                           -> ip   # decimal
+L5   eval  :put [:typeof 1e3]                                           -> str   # exponent
+L6   eval  :put [:typeof 1_000]                                         -> str   # underscore
+L7   eval  :put [:typeof 0b101]                                         -> str   # binary
+L8   eval  :put [:typeof 0o7]                                           -> str   # octal
+L9   eval  :put [:typeof 007]                                           -> num   # leading zeros
+L10  eval  :put [:typeof 9223372036854775807]                           -> num   # int64 max
+L11  eval  :put [:typeof 9223372036854775808]                           -> num   # int64 max + 1
+L12  eval  :put [:typeof 10s]                                           -> time   # time: seconds
+L13  eval  :put [:typeof 1d2h3m]                                        -> time   # time: d h m
+L14  eval  :put [:typeof 00:10:00]                                      -> time   # time: clock form
+L15  eval  :put [:typeof 1w]                                            -> time   # time: week
+L16  eval  :put [:typeof 2735w21:41:43]                                 -> time   # time: docs :timestamp output
+L17  eval  :put [:typeof 1h30]                                          -> time   # time: odd mix
+L18  eval  :put [:typeof 100ms]                                         -> time   # time: ms
+L19  eval  :put [:typeof *1A]                                           -> id   # internal id
+L20  eval  :put [:typeof *g]                                            -> str   # internal id, bad digit
+L21  eval  :put [:typeof *]                                             -> id   # lone star
+L22  eval  :put [:typeof 1.1.1.1]                                       -> ip   # ip
+L23  eval  :put [:typeof 1.1.1.1/32]                                    -> ip-prefix   # ip-prefix
+L24  eval  :put [:typeof 1.1.1.0/24]                                    -> ip-prefix   # ip-prefix
+L25  eval  :put [:typeof 256.1.1.1]                                     -> str   # bad ip
+L26  eval  :put [:typeof 1.1.1]                                         -> ip   # three octets
+L27  eval  :put [:typeof 1.1.1.1.1]                                     -> str   # five octets
+L28  eval  :put [:typeof ::1]                                           -> ip6   # ip6
+L29  eval  :put [:typeof 2001:db8::/32]                                 -> ip6-prefix   # ip6-prefix
+L30  eval  :put [:typeof fe80::1]                                       -> ip6   # ip6 link-local
+L31  eval  :put [:typeof true]                                          -> bool   # bool
+L32  eval  :put [:typeof false]                                         -> bool   # bool
+L33  eval  :put [:typeof yes]                                           -> bool   # yes
+L34  eval  :put [:typeof no]                                            -> bool   # no
+L35  eval  :put [:typeof nil]                                           -> str   # nil
+L36  eval  :put [:typeof TRUE]                                          -> str   # bool capitals
+L37  eval  :put [:typeof "x"]                                           -> str   # string
+L38  eval  :put [:typeof abc]                                           -> str   # bare word
+L39  eval  :put [:typeof a.b]                                           -> str   # bare word with dot
+L40  eval  :put [:typeof a-b]                                           -> str   # bare word with hyphen
+L41  eval  :put [:typeof abc123]                                        -> str   # bare word
+L42  eval  :put [:typeof {1;2}]                                         -> array   # array
+L43  eval  :put [:typeof {a=1}]                                         -> array   # keyed array
+L44  eval  :put [:typeof (1,2)]                                         -> array   # comma list in parens
+L45  eval  :put [:typeof {}]                                            -> syntax error (line 1 column 17)   # empty array
+L46  eval  :put [:typeof ()]                                            -> syntax error (line 1 column 17)   # empty parens
+== LITERAL VALUES where the form is ambiguous: :put (<literal>)
+V0   eval  :put (0xFF)                                                  -> 255
+V1   eval  :put (1e3)                                                   -> 
+V2   eval  :put (007)                                                   -> 7
+V3   eval  :put (1d2h3m)                                                -> 1d02:03:00
+V4   eval  :put (00:10:00)                                              -> 00:10:00
+V5   eval  :put (10/2)                                                  ->    # docs: 'mistaken as an IP address'
+V6   eval  :put ((10)/2)                                                -> 5   # docs fix
+V7   eval  :put (10 / 2)                                                -> 5   # docs fix
+V8   eval  :put ((10 / 2))                                              -> 5
+V9   eval  :put ((10/2))                                                -> 
+V10  eval  :put (1.1.1.1/32)                                            -> 1.1.1.1/32
+V11  eval  :put (1.1.1.1 / 32)                                          -> Script Error: cannot divide ip prefix by time interval
+V12  eval  :put ((1.1.1.1)/32)                                          -> Script Error: cannot divide ip prefix by time interval
+V13  eval  :put (3/2)                                                   -> 
+V14  eval  :put (3/2/1)                                                 -> 
+== ESCAPE SEQUENCES: :put [:convert "<esc>" to=hex]  (docs: \" \\ \n \r \t \$ \? \_ \a \b \f \v and \xx two hex digits, capitals)
+E0   eval  :put [:convert "\"" to=hex]                                  -> 22   # escape \"
+E1   eval  :put [:convert "\\" to=hex]                                  -> 5c   # escape \\
+E2   eval  :put [:convert "\n" to=hex]                                  -> 0a   # escape \n
+E3   eval  :put [:convert "\r" to=hex]                                  -> 0d   # escape \r
+E4   eval  :put [:convert "\t" to=hex]                                  -> 09   # escape \t
+E5   eval  :put [:convert "\$" to=hex]                                  -> 24   # escape \$
+E6   eval  :put [:convert "\?" to=hex]                                  -> 3f   # escape \?
+E7   eval  :put [:convert "\_" to=hex]                                  -> 20   # escape \_
+E8   eval  :put [:convert "\a" to=hex]                                  -> 07   # escape \a
+E9   eval  :put [:convert "\b" to=hex]                                  -> 08   # escape \b
+E10  eval  :put [:convert "\f" to=hex]                                  -> 0c   # escape \f
+E11  eval  :put [:convert "\v" to=hex]                                  -> 0b   # escape \v
+E12  eval  :put [:convert "\48" to=hex]                                 -> 48   # escape \48
+E13  eval  :put [:convert "\4F" to=hex]                                 -> 4f   # escape \4F
+E14  eval  :put [:convert "\4f" to=hex]                                 -> expected value value (line 1 column 19)   # escape \4f
+E15  eval  :put [:convert "\4" to=hex]                                  -> expected value value (line 1 column 19)   # escape \4
+E16  eval  :put [:convert "\FF" to=hex]                                 -> ff   # escape \FF
+E17  eval  :put [:convert "\00" to=hex]                                 -> 00   # escape \00
+E18  eval  :put [:convert "\x41" to=hex]                                -> expected value value (line 1 column 18)   # escape \x41
+E19  eval  :put [:convert "\q" to=hex]                                  -> expected value value (line 1 column 18)   # escape \q
+E20  eval  :put [:convert "\e" to=hex]                                  -> expected value value (line 1 column 18)   # escape \e
+E21  eval  :put [:convert "\0" to=hex]                                  -> expected value value (line 1 column 19)   # escape \0
+E22  eval  :put [:convert "\u0041" to=hex]                              -> expected value value (line 1 column 18)   # escape \u0041
+E23  eval  :put [:convert "\'" to=hex]                                  -> expected value value (line 1 column 18)   # escape \'
+E24  eval  :put [:convert "\/" to=hex]                                  -> expected value value (line 1 column 18)   # escape \/
+E25  eval  :put [:convert "\#" to=hex]                                  -> expected value value (line 1 column 18)   # escape \#
+== ARITHMETIC AND PRECEDENCE (docs: operators listed, NO precedence or associativity stated)
+A0   eval  :put (1+2*3)                                                 -> 7   # + vs *
+A1   eval  :put (2*3+1)                                                 -> 7   # * then +
+A2   eval  :put (10-2-3)                                                -> 5   # left assoc?
+A3   eval  :put (100/10/5)                                              ->    # division assoc
+A4   eval  :put (2*3%4)                                                 -> 2   # * %
+A5   eval  :put (7%4*2)                                                 -> 6   # % *
+A6   eval  :put (-2*3)                                                  -> -6   # unary minus
+A7   eval  :put (1+-1)                                                  -> 0   # binary then unary
+A8   eval  :put (1 - -1)                                                -> 2
+A9   eval  :put (5 % 3)                                                 -> 2   # modulo
+A10  eval  :put (10 / 4)                                                -> 2   # int division
+A11  eval  :put (7 / 2)                                                 -> 3
+A12  eval  :put (-7 / 2)                                                -> -3
+A13  eval  :put (2-1-1)                                                 -> 0
+A14  eval  :put (1+2+3*4)                                               -> 15
+A15  eval  :put (8/4/2)                                                 -> 
+== LOGICAL AND RELATIONAL
+R0   eval  :put (true||false&&false)                                    -> true   # || vs &&
+R1   eval  :put (false&&false||true)                                    -> true   # && vs ||
+R2   eval  :put (true&&false||true)                                     -> true
+R3   eval  :put (!true=false)                                           -> true   # ! vs =
+R4   eval  :put (!false&&false)                                         -> false
+R5   eval  :put (true and false or true)                                -> true   # word forms
+R6   eval  :put (true or false and false)                               -> true
+R7   eval  :put (!true)                                                 -> false
+R8   eval  :put (! true)                                                -> false   # space after !
+R9   eval  :put (not true)                                              -> true   # not as a word
+R10  eval  :put (1<2=true)                                              -> true   # relational vs =
+R11  eval  :put (3>2>1)                                                 -> Script Error: cannot compare if truth value is more than time interval   # chained
+R12  eval  :put (1=1=1)                                                 -> false   # chained =
+R13  eval  :put (1<2<3)                                                 -> Script Error: cannot compare if truth value is less than time interval
+R14  eval  :put (1!=2)                                                  -> true
+R15  eval  :put (1<=1)                                                  -> true
+R16  eval  :put ("a"<"b")                                               -> Script Error: cannot compare if string is less than string   # string compare
+R17  eval  :put ("10"<"9")                                              -> false   # string vs number compare
+R18  eval  :put (10<9)                                                  -> false
+R19  eval  :put (1=1&&2=2)                                              -> true   # = vs &&
+R20  eval  :put (1=2||2=2)                                              -> true
+R21  eval  :put (1+2=3)                                                 -> true   # + vs =
+R22  eval  :put (1<2&&3<4)                                              -> true
+== CONCATENATION, ARRAYS, REGEX, BITWISE, IN
+O0   eval  :put ("a"."b"."c")                                           -> abc   # string concat
+O1   eval  :put (1."a")                                                 -> a   # number then string
+O2   eval  :put (1 . 2)                                                 -> 12   # numbers
+O3   eval  :put ({1;2},3)                                               -> 1;2;3   # array , element
+O4   eval  :put (1,2)                                                   -> 1;2
+O5   eval  :put (1,2,3)                                                 -> 1;2;3
+O6   eval  :put (1+2 . "x")                                             -> 3x   # . vs +
+O7   eval  :put ("a" . 1 = "a1")                                        -> true   # . vs =
+O8   eval  :put ("a" . "b" = "ab")                                      -> true
+O9   eval  :put ("abc"~"b")                                             -> true   # regex match
+O10  eval  :put ("abc"~"^b")                                            -> false
+O11  eval  :put ("abc"~"B")                                             -> false   # case
+O12  eval  :put (~0.0.0.0)                                              -> 255.255.255.255   # inversion
+O13  eval  :put (192.168.88.77&255.255.255.0)                           -> 192.168.88.0   # AND
+O14  eval  :put (1&3)                                                   -> 1   # AND on ints (docs: IP only)
+O15  eval  :put (1|2)                                                   -> 3   # OR on ints
+O16  eval  :put (1^3)                                                   -> 2   # XOR on ints
+O17  eval  :put (1<<2)                                                  -> 4   # shift on ints
+O18  eval  :put (~1)                                                    -> Script Error: cannot invert time interval   # invert int
+O19  eval  :put (192.168.88.77<<8)                                      -> 168.88.77.0   # docs example
+O20  eval  :put (192.168.88.77>>24)                                     -> 0.0.0.192   # docs example
+O21  eval  :put (1.1.1.1/32 in 1.0.0.0/8)                               -> true   # docs example
+O22  eval  :put (1.1.1.1 in 1.0.0.0/8)                                  -> true   # address in prefix
+O23  eval  :put (2 in {1;2})                                            -> false   # in with array?
+O24  eval  :put (192.168.88.0|0.0.0.255)                                -> 192.168.88.255   # docs example
+O25  eval  :put (1.1.1.1^255.255.0.0)                                   -> 254.254.1.1   # docs example
+== UNARY MINUS ON A VARIABLE, BARE IDENTIFIERS IN EXPRESSIONS (docs examples use them without $)
+B0   eval  { :local a 1; :put (-a) }                                    -> -1   # docs: unary negation example, bare a
+B1   eval  { :local a 1; :put (-$a) }                                   -> -1   # with $
+B2   eval  { :local a true; :local b false; :put (a&&b) }               -> false   # docs example, bare a and b
+B3   eval  { :local a true; :local b false; :put ($a&&$b) }             -> false   # with $
+B4   eval  { :local a true; :local b false; :put (a and b) }            -> false   # docs example, word and
+B5   eval  { :local a 1; :put (a+1) }                                   -> 2   # bare name in arithmetic
+B6   eval  { :put (abc . "d") }                                         -> d   # bare word concatenated
+B7   eval  { :put (abc = abc) }                                         -> true   # bare words compared
+B8   eval  { :local a 1; :put (a) }                                     -> 1   # bare name alone
+B9   eval  { :local a 1; :put ($a+$a) }                                 -> 2
+B10  eval  { :local a 1; :put ($a +$a) }                                -> 2   # space before only
+B11  eval  { :local a 1; :put ($a+ $a) }                                -> 2   # space after only
+B12  eval  { :local a 5; :put ($a-1) }                                  -> 4   # minus after name
+B13  eval  { :local a 5; :put ($a -1) }                                 -> 4   # space then -1
+cleanup: probe files left on the router: 0

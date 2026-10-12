@@ -1,0 +1,63 @@
+version: 7.21.4 (long-term)
+== NON-ASCII (retest of j11 without the comment-after-command rule getting in the way)
+u1   check :put "é";                                                    -> OK   # non-ASCII inside a string
+u2   check # é comment\n:put 1                                          -> OK   # non-ASCII in a comment
+u3   check :local é 1                                                   -> ERR: syntax error (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # non-ASCII identifier: docs say letters and digits
+== SCOPE ACROSS LINES OF A REAL IMPORT (docs: 'each line written in the terminal is a local scope')
+s1   run   :local x 1; :put [:typeof $x]\n                              -> OUT: num   # same line
+s2   run   :local x 1\n:put [:typeof $x]\n                              -> OUT: nothing   # next top-level line
+s3   run   {\n:local x 1\n:put [:typeof $x]\n}\n                        -> OUT: num   # inside one block spanning lines
+s4   run   { { :local b 1 }\n :put [:typeof $b] }\n                     -> OUT: nothing   # inner local used after its block closes
+s5   run   { :local a 3; { :local b 4; :put ($a+$b) } }\n               -> OUT: 7   # docs: inner block sees outer a
+s6   run   :global gtest1 5\n:put [:typeof $gtest1]\n                   -> OUT: num   # global on one line, used on the next
+s7   run   { :global gtest2 4 }\n:put [:typeof $gtest2]\n               -> OUT: num   # global declared inside a block, used outside WITHOUT redeclaring
+s8   run   { :global gtest3 4 }\n:global gtest3\n:put [:typeof $gtest3] -> OUT: num   # docs: redeclare to make it visible
+s9   run   { :local a 3; { :global gtest4 4 }; :global gtest4; :put ($a -> OUT: 7   # docs example (7)
+== UNDECLARED VARIABLES (docs: compile error unless built-in/contextual)
+v1   check :put $nope                                                   -> OK   # dry-run: use without declaration
+v2   run   :put [:typeof $nope]\n                                       -> OUT: nothing   # real import: use without declaration
+v3   eval  :put [:typeof $nope]                                         -> nothing   # console exec: use without declaration
+v4   eval  :put $nope                                                   ->    # console exec: the docs' own example
+v5   check :set nope "x"                                                -> ERR: syntax error (line 1 column 6)   [Script Error: found 1 error(s) in import file]   # dry-run: :set on an undeclared name
+v6   run   :set nope "x"\n                                              -> OUT: Script Error: syntax error (line 1 column 6)   # real import: :set on an undeclared name
+v7   eval  :set nope "x"                                                -> syntax error (line 1 column 6)   # console exec: :set on an undeclared name (docs example)
+v8   eval  :local vv; :set vv 1; :put $vv                               -> 1   # declared then set (docs 'correct code')
+v9   check { :local myVar 'a'; :put $myVAr }                            -> ERR: syntax error (line 1 column 16)   [Script Error: found 1 error(s) in import file]   # case sensitivity
+== FUNCTION AND LOOP PARAMETERS (the 'must be declared' rule vs implicit variables)
+f1   run   { :local f do={ :put [:typeof $a] }; $f a=1 }\n              -> OUT: str   # named argument becomes $a
+f2   run   { :local f do={ :put [:typeof $1] }; $f 7 }\n                -> OUT: str   # positional argument becomes $1
+f3   check { :local f do={ :put $a }; $f a=1 }                          -> OK   # dry-run: $a not declared inside the function body
+f4   run   { :local f do={ :return ($a + $b) }; :put [$f a=6 b=2] }\n   -> OUT: 8   # docs return example
+f5   check :foreach i in={1;2} do={ :put $i }                           -> OK   # loop variable
+f6   check :foreach k,v in={1;2} do={ :put $k }                         -> OK   # key and value variables
+f7   check :for i from=1 to=3 do={ :put $i }                            -> OK   # for variable
+f8   check :onerror e in={ :error "x" } do={ :put $e }                  -> OK   # onerror variable with in=
+f9   check :onerror e {:put 1} do={ :put $e }                           -> OK   # docs example without in=
+f10  check { :local type 1; /interface print where name=$type }         -> OK   # docs: reserved name `type`
+f11  run   { :global gfn do={ :global gfn2; :return 5 }; :put [$gfn] }\ -> OUT: 5   # declare a global inside a function
+== IDENTIFIERS (docs: letters and digits; others need double quotes; case-sensitive; keywords: and or in)
+i1   check :local aB1 1                                                 -> OK   # mixed case + digit
+i2   check :local a_b 1                                                 -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # underscore
+i3   check :local a-b 1                                                 -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # hyphen: docs say needs quotes
+i4   check :local "a-b" 1                                               -> OK   # quoted hyphen: docs say valid
+i5   check :local 1a 1                                                  -> OK   # leading digit
+i6   check :local 1 1                                                   -> OK   # all digits
+i7   check :local "a b" 1                                               -> OK   # quoted space
+i8   check :local "" 1                                                  -> OK   # empty quoted name
+i9   check :local and 1                                                 -> OK   # keyword and
+i10  check :local or 1                                                  -> OK   # keyword or
+i11  check :local in 1                                                  -> OK   # keyword in
+i12  check :local true 1                                                -> OK   # true
+i13  check :local nil 1                                                 -> OK   # nil
+i14  check :local not 1                                                 -> OK   # not
+i15  check :local do 1                                                  -> OK   # do
+i16  check :local if 1                                                  -> OK   # if
+i17  check :local global 1                                              -> OK   # global
+i18  check :local x; :put $"x"                                          -> OK   # quoted reference to a plain name
+i19  check :local "my-Var"; :set "my-Var" "v"; :put $"my-Var"           -> OK   # docs example
+i20  check :local x 1; :put $x$x                                        -> ERR: expected end of command (line 1 column 20)   [Script Error: found 1 error(s) in import file]   # two substitutions back to back
+i21  check :put $                                                       -> ERR: syntax error (line 1 column 7)   [Script Error: found 1 error(s) in import file]   # lone dollar
+i22  check :put "a$"                                                    -> ERR: syntax error (line 2 column 10)   [Script Error: found 1 error(s) in import file]   # lone dollar in a string
+i23  check :local x 1; :put "$x-$x"                                     -> OK   # interpolation followed by hyphen
+i24  run   :local x 1; :put "$x-a $x.a $x_a $x:a"\n                     -> OUT: 1-a 1.a 1_a 1:a   # where does an interpolated name end?
+cleanup: probe files left on the router: 0

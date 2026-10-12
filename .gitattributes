@@ -1,0 +1,4 @@
+* text=auto eol=lf
+# fixtures that must keep their exact line endings
+test/fixtures/crlf/** -text
+test/fixtures/cr/** -text

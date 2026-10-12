@@ -1,0 +1,64 @@
+version: 7.21.4 (long-term)
+== INTERPOLATION INSIDE STRINGS (docs: $var, $[cmd], $(expr) inside a string; \$ for a literal dollar)
+x1   run   :put "n=$[:len "ab"]"\n                                      -> OUT: n=2   # nested double quotes inside $[ ] inside a string
+x2   run   :put "a$(1+2)b"\n                                            -> OUT: a3b   # $(expr) in a string
+x3   run   :put "$[:len "a"] $[:len "bb"]"\n                            -> OUT: 1 2   # two nested substitutions
+x4   run   :put "cost: \$5"\n                                           -> OUT: cost: $5   # escaped dollar
+x5   run   :local x 1; :put "$$x"\n                                     -> OUT: 1   # double dollar
+x6   run   :put "$ x"\n                                                 -> OUT: Script Error: syntax error (line 1 column 8)   # dollar followed by space
+x7   run   :put "$1"\n                                                  -> OUT: (nothing)   # dollar digit with no such variable
+x8   run   :local a {k=7}; :put "v=$($a->"k")"\n                        -> OUT: v=7   # nested quotes inside $( )
+x9   run   :put "tab\there"\n                                           -> OUT: tab	here   # backslash before an ordinary letter inside a string (device rejects unknown escapes?)
+x10  run   :put "a\\nb"\n                                               -> OUT: ab   # string join, again, for the exact result
+== $ FORMS OUTSIDE STRINGS
+d1   run   :put $[:len ab]\n                                            -> OUT: Script Error: syntax error (line 1 column 16)   # $[cmd] as an argument
+d2   run   :put $(1+2)\n                                                -> OUT: Script Error: syntax error (line 1 column 12)   # $(expr) as an argument
+d3   run   :local a {k=7}; :put $a->k\n                                 -> OUT: Script Error: expected end of command (line 1 column 24)   # -> without parentheses
+d4   run   :local a {k=7}; :put ($a->"k")\n                             -> OUT: 7   # -> with parentheses
+d5   run   :local a {k={j=3}}; :put ($a->"k"->"j")\n                    -> OUT: 3   # chained ->
+d6   run   :local a {5;6;7}; :put ($a->1)\n                             -> OUT: 6   # numeric index
+d7   run   :local a {5;6;7}; :put ($a->9)\n                             -> OUT: (nothing)   # index out of range
+d8   run   :local f do={ :return 5 }; :put [$f]\n                       -> OUT: 5   # call through [$f]
+d9   run   :local f do={ :put 5 }; $f\n                                 -> OUT: 5   # call as a statement
+d10  run   :local f do={ :put 5 }; $f;\n                                -> OUT: 5   # call with semicolon
+d11  run   :local f do={ :put ($1 + $2) }; $f 3 4\n                     -> OUT: 7   # positional arguments
+d12  check $1                                                           -> OK   # a call statement of a numeric name
+== CONTROL-FLOW LAYOUT PITFALLS
+k1   check :if (true) do={ :put 1 }\nelse={ :put 2 }                    -> ERR: syntax error (line 2 column 5)   [Script Error: found 1 error(s) in import file]   # else on the next line
+k2   check :if (true) do={ :put 1 } \\nelse={ :put 2 }                  -> OK   # else after a line join
+k3   check :if (true) do={\n  :put 1\n} else={\n  :put 2\n}             -> OK   # the usual brace layout
+k4   check :if (true) do={ :put 1 }; else={ :put 2 }                    -> ERR: syntax error (line 1 column 31)   [Script Error: found 1 error(s) in import file]   # semicolon before else
+k5   check :foreach i in={1;2} do={\n:put $i\n}                         -> OK   # multi-line do block
+k6   check :if (true) \ndo={ :put 1 }                                   -> ERR: Script Error: missing value(s) of argument(s) do ; expected end of command (line 2 column 3)   [Script Error: found 2 error(s) in import file]   # do= on t
+k7   check :do { :put 1 }\nwhile=(false)                                -> ERR: expected end of command (line 2 column 6)   [Script Error: found 1 error(s) in import file]   # while= on the next line
+k8   check :for i from=1 to=3 do={\n}\n:put 1                           -> OK   # empty block followed by a command
+k9   check /ip address\nadd address=1.1.1.1/32 \\n    interface=ether1  -> OK   # export-style continuation
+k10  check /ip firewall filter add comment=\\n    "x y" chain=input     -> OK   # backslash between = and the value (export style)
+k11  check /ip firewall filter add comment= \\n    "x" chain=input      -> OK   # space, backslash, newline after =
+== STRINGS AND QUOTING IN COMMAND ARGUMENTS
+g1   check /system identity set name="a b"                              -> OK   # quoted value with a space
+g2   check /system identity set name=a b                                -> ERR: expected end of command (line 1 column 29)   [Script Error: found 1 error(s) in import file]   # unquoted value with a space
+g3   check /system identity set name=a"b"                               -> ERR: expected end of command (line 1 column 28)   [Script Error: found 1 error(s) in import file]   # quote in the middle of a bare word
+g4   check /system identity set name="a" "b"                            -> ERR: expected end of command (line 1 column 31)   [Script Error: found 1 error(s) in import file]   # two strings
+g5   check /system identity set name='a'                                -> ERR: syntax error (line 1 column 27)   [Script Error: found 1 error(s) in import file]   # single quotes
+g6   check /system identity set name=""                                 -> OK   # empty string
+g7   check /system identity set name="unterminated                      -> ERR: expected name value (line 2 column 40)   [Script Error: found 1 error(s) in import file]   # unterminated string
+g8   check /system identity set name="a\"b"                             -> OK   # escaped quote inside a string
+g9   check /system identity set name=a,b                                -> OK   # comma in a bare value
+g10  check /system identity set name=a;b                                -> OK   # semicolon in a bare value ends the command
+g11  check /system identity set name=(1+2)                              -> OK   # expression value
+g12  check /system identity set name=[/system identity get name]        -> OK   # substitution value
+g13  check /system identity set name=$x                                 -> OK   # variable value
+g14  check /system identity set name=a$x                                -> ERR: expected end of command (line 1 column 28)   [Script Error: found 1 error(s) in import file]   # dollar inside a bare word
+g15  check /system identity set name=a#b                                -> OK   # hash inside a bare value
+g16  check /system identity set name=a/b                                -> OK   # slash inside a bare value
+g17  check /system identity set name=a:b                                -> OK   # colon inside a bare value
+g18  check /system identity set name=a=b                                -> ERR: expected end of command (line 1 column 28)   [Script Error: found 1 error(s) in import file]   # equals inside a bare value
+g19  check /system identity set name=a[b                                -> ERR: expected end of command (line 1 column 28)   [Script Error: found 1 error(s) in import file]   # unbalanced bracket in a bare value
+g20  check /system identity set name=a}                                 -> OK   # stray closing brace
+g21  check /system identity set name=a)                                 -> ERR: expected end of command (line 1 column 28)   [Script Error: found 1 error(s) in import file]   # stray closing paren
+g22  check }                                                            -> OK   # stray closing brace at statement start
+g23  check {                                                            -> ERR: missing closing brace (line 2 column 2)   [Script Error: found 1 error(s) in import file]   # unclosed block
+g24  check :put (                                                       -> ERR: syntax error (line 2 column 7)   [Script Error: found 1 error(s) in import file]   # unclosed paren
+g25  check :put [                                                       -> ERR: syntax error (line 2 column 7)   [Script Error: found 1 error(s) in import file]   # unclosed bracket
+cleanup: probe files left on the router: 0

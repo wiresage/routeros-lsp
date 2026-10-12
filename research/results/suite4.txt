@@ -1,0 +1,149 @@
+version: 7.21.4 (long-term)
+== ARRAYS vs BLOCKS (docs: {..} is both a scope/block and an array literal; no rule given)
+a1   check :local a {a=1;b=2}                                           -> OK   # array as a command argument
+a2   check :local a ({a=1})                                             -> OK   # parenthesised array
+a3   check { a=1 }                                                      -> ERR: syntax error (line 1 column 4)   [Script Error: found 1 error(s) in import file]   # bare statement that looks like an array
+a4   check :put {1;2;3}                                                 -> OK   # array literal as :put argument
+a5   check :local a { "aX"=1; ay=2 }; :put ($a->"aX")                   -> OK   # docs example
+a6   check :local a {a1=1}                                              -> OK   # key with a digit
+a7   check :local a {a-b=1}                                             -> OK   # key with a hyphen: docs say quote it
+a8   check :local a {A=1}                                               -> OK   # key with a capital: docs say quote it
+a9   check :local a {1=2}                                               -> OK   # numeric key
+a10  check :local a {a_b=1}                                             -> OK   # key with underscore
+a11  check :local a {a=1;}                                              -> OK   # trailing semicolon
+a12  check :local a {a={b=1}}                                           -> OK   # nested keyed array
+a13  check :local a (1,2,3); :put ($a->1)                               -> OK   # comma list then ->
+a14  check :local a {1;2;3}; :put ($a->1)                               -> OK   # index
+a15  check :local a {x=1}; :put ($a->x)                                 -> OK   # unquoted key after ->
+a16  check :local a {x=1}; :set ($a->"x") 5                             -> OK   # docs example: set one element
+a17  check :foreach k,v in={2; aX=1; y=2; 5} do={ :put $k }             -> OK   # docs example
+a18  check :foreach v in={1;2} do={ :put $v }                           -> OK   # one variable
+a19  check :local a {:put 1}                                            -> OK   # a block as an argument
+a20  check :local f do={ :put 1 }                                       -> OK   # function value
+a21  check :local a {}                                                  -> ERR: syntax error (line 1 column 12)   [Script Error: found 1 error(s) in import file]   # empty braces as an argument
+== COLON PREFIX (docs: every global command should start with ':', otherwise it is treated as a variable)
+p1   check put "x"                                                      -> OK   # no colon (docs example inside a script source)
+p2   check :put "x"                                                     -> OK   # with colon
+p3   check :put [typeof 1]                                              -> OK   # docs example :put [typeof ...] without colon
+p4   check :put [:typeof 1]                                             -> OK   # with colon
+p5   check do { :put 1 } on-error={ :put 2 }                            -> OK   # docs example for import (no colon)
+p6   check :do { :put 1 } on-error={ :put 2 }                           -> OK   # with colon
+p7   check if (true) do={ :put 1 }                                      -> OK   # no colon
+p8   check :if (true) do={ :put 1 }                                     -> OK   # with colon
+p9   check local x 1                                                    -> OK   # no colon
+p10  check global y                                                     -> OK   # no colon
+p11  check :local x; set x 1                                            -> OK   # set without colon on a declared variable
+p12  check :put [convert transform=lc "AAA"]                            -> OK   # docs example without colon
+p13  check :if (true) do={:put 1} else={:put 2}                         -> OK   # else
+p14  check :if (true) do={:put 1} else={}                               -> OK   # empty else
+p15  check :while (false) do={}                                         -> OK   # while
+p16  check :do {} while=(false)                                         -> OK   # do..while
+p17  check :do {:put 1} on-error={:put 2}                               -> OK   # :do on-error
+p18  check :return 1                                                    -> OK   # return at top level
+p19  check :break                                                       -> ERR: bad command name break (line 1 column 2)   [Script Error: found 1 error(s) in import file]   # break outside a loop
+p20  check :foreach i in={1} do={ :break }                              -> OK   # break inside a loop
+p21  check :delay 1s                                                    -> OK   # delay with a time
+p22  check :delay 1                                                     -> OK   # delay with a bare number
+p23  check :log info "x"                                                -> OK   # log
+p24  check :put "a" "b"                                                 -> ERR: expected end of command (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # two unnamed arguments
+p25  check :len                                                         -> ERR: Script Error: missing value(s) of argument(s) value   [Script Error: found 1 error(s) in import file]   # missing argument
+p26  check :put                                                         -> ERR: Script Error: missing value(s) of argument(s) message   [Script Error: found 1 error(s) in import file]   # no argument
+p27  check :put [:convert 001 to=hex]                                   -> OK   # docs example
+p28  check :put [:resolve domain-name="x" port=53]                      -> ERR: expected end of command (line 1 column 32)   [Script Error: found 1 error(s) in import file]   # docs example uses port=
+p29  check :put [:resolve "x" server-port=53]                           -> OK   # docs text says server-port
+p30  check :put [:tonum value=10]                                       -> OK   # value= naming the unnamed parameter
+p31  check :put [:serialize value=a to=json]                            -> OK   # docs example
+p32  check :onerror e in={:retry command={abc} delay=1 max=2} do={}     -> OK   # docs example shape
+p33  check :foo                                                         -> ERR: bad command name foo (line 1 column 2)   [Script Error: found 1 error(s) in import file]   # unknown global command
+p34  check :put [:foo]                                                  -> ERR: bad command name foo (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # unknown global command in []
+p35  check :if (true) do={ :put 1 } elseif={ :put 2 }                   -> ERR: expected end of command (line 1 column 26)   [Script Error: found 1 error(s) in import file]   # elseif does not exist
+p36  check :if (true) do=:put 1                                         -> ERR: invalid value for argument do   [Script Error: found 1 error(s) in import file]   # do= without a block
+p37  check :if true do={ :put 1 }                                       -> ERR: syntax error (line 1 column 5)   [Script Error: found 1 error(s) in import file]   # condition without parentheses
+p38  check :for i from=1 to=3 step=1 do={}                              -> OK   # for with step
+p39  check :for i from=1 to=3 do={ :put $i } else={}                    -> ERR: expected end of command (line 1 column 35)   [Script Error: found 1 error(s) in import file]   # for with else
+p40  check :execute {:put 1}                                            -> OK   # execute
+p41  check :parse ":put 1"                                              -> OK   # parse
+p42  check $nofunc                                                      -> OK   # call of an undeclared function
+p43  check :global f do={ :put 1 }; $f                                  -> OK   # call of a declared function
+p44  check :global f do={ :put 1 }; [$f]                                -> OK   # bracketed call as a statement
+== MENU PATHS (docs: [prefix][path] command; shows both '/ip route get' and '/interface/print' and 'system/script/run')
+m1   check /ip address print                                            -> OK   # space separated
+m2   check /ip/address/print                                            -> OK   # slash separated
+m3   check /ip/address print                                            -> OK   # mixed
+m4   check /ip address/print                                            -> OK   # mixed
+m5   check ip address print                                             -> OK   # relative, no leading slash
+m6   check system/script/run x                                          -> OK   # docs example, no leading slash
+m7   check /ip address\nprint                                           -> OK   # path line then a relative command
+m8   check /ip address; print                                           -> OK   # path then ; then command
+m9   check /ip\naddress print                                           -> OK   # partial path then relative path
+m10  check /ip address print; /ip route print                           -> OK   # two commands
+m11  check :put 1; /ip address print                                    -> OK   # global command then menu command
+m12  check /foo bar                                                     -> ERR: bad command name foo (line 1 column 2)   [Script Error: found 1 error(s) in import file]   # unknown menu
+m13  check /ip foo                                                      -> ERR: bad command name foo (line 1 column 5)   [Script Error: found 1 error(s) in import file]   # unknown submenu
+m14  check /ip address foo                                              -> ERR: bad command name foo (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # unknown command
+m15  check /ip addr print                                               -> OK   # abbreviated menu
+m16  check /ip address pr                                               -> OK   # abbreviated command
+m17  check /IP ADDRESS print                                            -> ERR: expected command name (line 1 column 2)   [Script Error: found 1 error(s) in import file]   # capitals
+m18  check /ip address PRINT                                            -> ERR: expected command name (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # capital command
+m19  check / ip address print                                           -> OK   # space after the leading slash
+m20  check /ip/ address print                                           -> OK   # slash then space
+m21  check /ip address .. print                                         -> ERR: bad command name print (line 1 column 16)   [Script Error: found 1 error(s) in import file]   # go back one level
+m22  check /ip address /ip route print                                  -> ERR: expected command name (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # slash in the middle starts a new absolut
+m23  check /system script environment print                             -> OK   # docs path
+m24  check /system/script/environment/print                             -> OK   # docs path, slashes
+m25  check /ip firewall filter print                                    -> OK   # three levels
+m26  check /ip firewall/filter print                                    -> OK   # mixed three levels
+m27  check /interface/print where name~"ether"                          -> OK   # docs example
+m28  check /interface/print where (name~"ether")=false                  -> OK   # docs example
+== PARAMETERS AND FLAGS (docs: [uparam] [param=[value]], flags like count-only, '!param' to unset)
+r1   check /ip address add address=1.1.1.1/32 interface=ether1          -> OK   # valid
+r2   check /ip address add address=1.1.1.1/32 interface=ether1 nope=1   -> ERR: expected end of command (line 1 column 53)   [Script Error: found 1 error(s) in import file]   # unknown parameter
+r3   check /ip address add nope=1                                       -> ERR: expected end of command (line 1 column 17)   [Script Error: found 1 error(s) in import file]   # only an unknown parameter
+r4   check /ip address add address=abc interface=ether1                 -> OK   # bad value for a typed parameter
+r5   check /ip address add                                              -> ERR: Script Error: missing value(s) of argument(s) address interface   [Script Error: found 1 error(s) in import file]   # required paramete
+r6   check /ip address set 0 nope=1                                     -> ERR: expected end of command (line 1 column 19)   [Script Error: found 1 error(s) in import file]   # set with an unknown parameter
+r7   check /ip address set 0 !comment                                   -> ERR: syntax error (line 1 column 19)   [Script Error: found 1 error(s) in import file]   # unset with !
+r8   check /ip address set 0 !nope                                      -> ERR: syntax error (line 1 column 19)   [Script Error: found 1 error(s) in import file]   # unset of an unknown parameter
+r9   check /ip address print count-only                                 -> OK   # bare flag
+r10  check /ip address print detail brief                               -> OK   # two bare flags
+r11  check /ip address print nope                                       -> ERR: expected end of command (line 1 column 19)   [Script Error: found 1 error(s) in import file]   # unknown bare flag
+r12  check /ip address print nope=1                                     -> ERR: expected end of command (line 1 column 19)   [Script Error: found 1 error(s) in import file]   # unknown named parameter
+r13  check /ip address print without-paging as-value                    -> OK   # docs print parameters
+r14  check /ip address print from=0                                     -> OK   # docs: from=
+r15  check /ip address print interval=2                                 -> OK   # docs: interval=
+r16  check /ip address remove 0                                         -> OK   # unnamed id
+r17  check /ip address remove *1                                        -> OK   # internal id
+r18  check /ip address remove [find]                                    -> OK   # find substitution
+r19  check /ip address remove [find address=1.1.1.1/32]                 -> OK   # find with a condition
+r20  check /ip address remove [nope]                                    -> ERR: bad command name nope (line 1 column 21)   [Script Error: found 1 error(s) in import file]   # unknown command in []
+r21  check /ip address add comment="x" address=1.1.1.1/32 interface=eth -> OK   # parameter order
+r22  check /ip address add address=1.1.1.1/32 address=2.2.2.2/32 interf -> ERR: expected end of command (line 1 column 36)   [Script Error: found 1 error(s) in import file]   # duplicate parameter
+r23  check /ip address add 1.1.1.1/32 interface=ether1                  -> ERR: expected end of command (line 1 column 17)   [Script Error: found 1 error(s) in import file]   # unnamed value where a named one is exp
+r24  check /ip address set numbers=0 comment=x                          -> OK   # named id parameter
+r25  check /ip address set [find where comment="x"] comment=y           -> OK   # find where
+r26  check /ip address enable 0                                         -> OK   # enable
+r27  check /ip address disable [find]                                   -> OK   # disable all
+r28  check /ip address add address=$ip interface=ether1                 -> OK   # variable as a value (undeclared)
+r29  check /ip address add address=("1.1.1." . 1) interface=ether1      -> OK   # expression as a value
+== WHERE CLAUSES (docs: expressions after where; property names are bare)
+q1   check /ip address print where address~"1"                          -> OK   # regex
+q2   check /ip address print where disabled                             -> OK   # bare boolean property
+q3   check /ip address print where !disabled                            -> OK   # negated bare property
+q4   check /ip address print where disabled=no and dynamic=no           -> OK   # and
+q5   check /ip address print where disabled or dynamic                  -> OK   # or
+q6   check /ip address print where nope=1                               -> OK   # unknown property
+q7   check /ip address print where nope                                 -> OK   # unknown bare property
+q8   check /ip address print where (address~"1")=false                  -> OK   # docs example shape
+q9   check /ip address print where .id=*1                               -> OK   # internal id property
+q10  check /ip address print where address=1.1.1.1/32                   -> OK   # ip-prefix value
+q11  check /ip address print where interface=ether1 && !disabled        -> OK   # && in where
+q12  check /ip address print where about                                -> OK   # docs: about
+q13  check /ip address find where comment="x"                           -> OK   # find where
+q14  check /ip address print where address in 1.0.0.0/8                 -> OK   # in
+== PATH STATE ACROSS LINES OF A REAL IMPORT (read-only commands only)
+n1   run   /ip address\nprint count-only\n                              -> OUT: 2   # does the path set by one line apply to the next?
+n2   run   /ip address\n:put 1\n                                        -> OUT: 1   # global command after a path line
+n3   run   /ip address; print count-only\n                              -> OUT: 2   # same line
+n4   run   /ip address\n/ip route print count-only\n                    -> OUT: 3   # absolute path after a path line
+n5   run   /ip\naddress\nprint count-only\n                             -> OUT: 2   # one segment per line
+cleanup: probe files left on the router: 0

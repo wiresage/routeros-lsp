@@ -1,0 +1,53 @@
+version: 7.21.4 (long-term)
+== COMMENTS (docs: '#' starts a comment and ends at the end of the physical line; not inside strings)
+c1   check :put 1 # trailing comment                                    -> ERR: expected end of command (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # docs example
+c2   check :put 1; # after semicolon                                    -> OK   # docs example
+c3   check :put 1# no space before hash                                 -> ERR: expected end of command (line 1 column 9)   [Script Error: found 1 error(s) in import file]   # docs silent
+c4   check :put "a#b"                                                   -> OK   # docs: not a comment inside a string
+c5   check :put a#b                                                     -> OK   # docs silent: # inside an unquoted word
+c6   check /system identity set name=abc#def                            -> OK   # docs silent: # inside an unquoted value
+c7   check /system script add name=x source=":put 1 # in string"        -> OK   # string
+c8   check { :put 1 # c\n}                                              -> ERR: expected end of command (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # comment inside a block
+c9   check # comment \\n  continued                                     -> ERR: bad command name continued (line 2 column 3)   [Script Error: found 1 error(s) in import file]   # docs: a backslash does not continue a comment -> syntax 
+c10  check :put 1 \ # bad comment\n                                     -> ERR: expected end of command (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # docs: a line ending in a backslash cannot carry a comment
+c11  check #only a comment                                              -> OK   # file with only a comment
+c12  check                                                              -> OK   # empty file
+== LINE JOINING (docs: backslash-newline joins lines; illegal elsewhere outside a string)
+j1   check :if (true = true \\n	and false=false) do={ :put 1 }          -> OK   # docs example
+j2   check :put \\n  1                                                  -> OK   # plain join
+j3   check :put \ \n  1                                                 -> OK   # backslash, SPACE, newline: docs silent
+j4   check :put \ 1                                                     -> OK   # docs: backslash illegal elsewhere
+j5   run   :put [:len "a\\n      b"]\n                                  -> OUT: 2   # string join: is the next line's indentation kept? (length)
+j6   run   :put [:len "a\\nb"]\n                                        -> OUT: 2   # string join, no indentation (length)
+j7   check :put "multi\nline string"                                    -> OK   # raw newline inside a string literal
+j8   check :put 1\r:put 2                                               -> OK   # CR-only line ending (docs: mac)
+j9   check :put 1\r\n:put 2                                             -> OK   # CRLF
+j10  check ﻿:put 1                                                      -> ERR: expected command name (line 1 column 1)   [Script Error: found 1 error(s) in import file]   # UTF-8 BOM at the start: docs silent
+j11  check :put "é" # é                                                 -> ERR: expected end of command (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # non-ASCII in string and comment
+== WHITESPACE AROUND '=' (docs: not allowed between '<parameter>=' and for from= to= step= in= do= else=)
+w1   check :for i from = 1 to = 2 do = { :put $i }                      -> ERR: syntax error (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # docs: INCORRECT
+w2   check :for i from=1 to=2 do={ :put $i }                            -> OK   # docs: correct
+w3   check :for i from= 1 to= 2 do={ :put $i }                          -> OK   # docs: listed as CORRECT (space after '=')
+w4   check /ip route add gateway = 3.3.3.3                              -> ERR: syntax error (line 1 column 23)   [Script Error: found 1 error(s) in import file]   # docs: INCORRECT
+w5   check /ip route add gateway=3.3.3.3                                -> OK   # docs: correct
+w6   check /ip route add gateway =3.3.3.3                               -> ERR: syntax error (line 1 column 23)   [Script Error: found 1 error(s) in import file]   # space before '='
+w7   check /ip route add gateway= 3.3.3.3                               -> OK   # space after '='
+w8   check { :local a true; :local b false; :put (a&&b); }              -> OK   # docs example: bare a, b without $
+w9   check { :local a true; :local b false; :put (a and b); }           -> OK   # docs example: word operator
+w10  check { :local a true; :local b false; :put ($a&&$b); }            -> OK   # with $
+w11  check { :local a true; :local b false; :put ($a and$b); }          -> OK   # word operator without a space after it
+w12  check { :local a true; :put ($aand$b) }                            -> OK   # name runs into 'and'
+== STATEMENT SEPARATION (docs: ';' or NEWLINE; not needed for a single command inside (), [] or {})
+t1   check :put 1 :put 2                                                -> ERR: expected end of command (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # two commands on one line, no separator
+t2   check :put 1;:put 2                                                -> OK   # semicolon, no space
+t3   check :put 1;;:put 2                                               -> OK   # empty statement
+t4   check { :put 1 }                                                   -> OK   # single command in a block, no terminator
+t5   check { :put 1; :put 2 }                                           -> OK   # last command without terminator
+t6   check { }                                                          -> OK   # empty block
+t7   check { ; }                                                        -> OK   # block holding only a separator
+t8   check :if ( true ) do={ :put "lala" }                              -> OK   # docs example
+t9   check :put [:len "x"; ]                                            -> OK   # docs example: trailing ';' inside []
+t10  check :put [:len "a"; :len "b"]                                    -> OK   # docs: [] can contain only a single command line
+t11  check :put []                                                      -> OK   # empty substitution
+t12  check :put (1; 2)                                                  -> ERR: syntax error (line 1 column 8)   [Script Error: found 1 error(s) in import file]   # ';' inside ()
+cleanup: probe files left on the router: 0

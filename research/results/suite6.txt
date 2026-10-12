@@ -1,0 +1,23 @@
+version: 7.21.4 (long-term)
+== PATH STATE AND BLOCKS (real import, read-only commands)
+b1   run   /ip address\n{\nprint count-only\n}\n                        -> OUT: 2   # relative command inside a block after a path line
+b2   run   {\n/ip address\nprint count-only\n}\nprint count-only\n      -> OUT: 2 | 2   # path set inside a block: does it leak after the block?
+b3   run   /ip address\n:put [print count-only]\n                       -> OUT: 2 | 2   # relative command inside [] after a path line
+b4   run   /ip address\n:foreach i in={1} do={ print count-only }\n     -> OUT: 2   # relative command in a do={} block
+b5   run   /ip route\n/ip address; print count-only\n                   -> OUT: 2   # absolute path replaces the current one
+b6   run   /ip address\n..\naddress print count-only\n                  -> OUT: 2   # .. goes up one level
+b7   run   /ip address\n/\nip address print count-only\n                -> OUT: 2   # bare / returns to the root
+b8   run   /ip address\n:global gp 1\nprint count-only\n                -> OUT: 2   # a global command between path line and command
+== ABBREVIATIONS (docs silent; the console accepts unambiguous prefixes)
+ab1  check /ip a print                                                  -> ERR: bad command name a (line 1 column 5)   [Script Error: found 1 error(s) in import file]   # ambiguous menu prefix (address, arp, accounting...)
+ab2  check /ip ad pr                                                    -> OK   # unambiguous prefixes
+ab3  check /ip address add addr=1.1.1.1/32 inter=ether1                 -> OK   # abbreviated parameter names
+ab4  check /ip address add a=1.1.1.1/32 interface=ether1                -> OK   # one-letter parameter prefix (address? arp?)
+ab5  check /ip address pri                                              -> OK   # abbreviated command
+ab6  check /ip address p                                                -> OK   # one-letter command prefix
+ab7  check :pu 1                                                        -> OK   # abbreviated global command
+ab8  check :lo x                                                        -> ERR: bad command name lo (line 1 column 2)   [Script Error: found 1 error(s) in import file]   # ambiguous global prefix (local, log, lock)
+ab9  check /ip address print det                                        -> OK   # abbreviated flag
+ab10 check /ip address print cou                                        -> OK   # abbreviated count-only
+ab11 check /ip addr add address=1.1.1.1/32 interface=ether1 comm=x      -> OK   # abbreviated comment
+cleanup: probe files left on the router: 0
