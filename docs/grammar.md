@@ -29,7 +29,9 @@ silently promote them to "the grammar".
 - A comment starts with `#` and ends at the end of the physical line. [D]
 - There are no multi-line comments. [D]
 - A `#` inside a string is not a comment. [D]
-- Documented example places a comment after `;`. [X] A comment directly after arguments with no `;` is a syntax error on the device. [V] L-01
+- Documented example places a comment after `;`. [X] `#` is read as a comment only at the start of a command: after `;`, a line break,
+  `{` or `[`, and at the start of a line that follows a backslash join. Anywhere else it is an ordinary character, so a comment
+  after arguments turns into extra arguments and the line fails. [V] L-01, L-18
 - A `#` inside an unquoted word or value (`a#b`) is part of the word. [V] L-02
 
 ### 2.2 Line joining
@@ -43,6 +45,7 @@ silently promote them to "the grammar".
 ### 2.3 Whitespace
 - Whitespace separates tokens and is required only where concatenation would read as a different token. [D]
   The documentation never lists the tokens, so the exact rule is open. [?] L-10
+  Observed: two values written with nothing between them are an error outside `( )`, also after a closing bracket (`}else=`). [V] L-19
 - No whitespace between `<parameter>` and `=`, and between `from= to= step= in= do= else=` and their `=`. [D]
   Whitespace after the `=` is accepted (the documentation's own "correct" example has it). [X] L-09
 
@@ -54,6 +57,7 @@ silently promote them to "the grammar".
 - A command line ends at `;` or NEWLINE. [D]
 - A single command inside `()`, `[]` or `{}` needs no terminator. [D]
 - Two commands on one line need a separator. [V] L-11
+- A line break inside `( )` is an error; inside `[ ]` and `{ }` it separates commands. [V] L-17
 
 ### 2.6 Strings
 - Double-quoted. Escape sequences: `\"` `\\` `\n` `\r` `\t` `\$` `\_` (space) `\a` `\b` `\f` `\v`, and `\` plus two
@@ -65,6 +69,7 @@ silently promote them to "the grammar".
   The nested expression or command can contain its own double-quoted strings. [V]
 - A raw newline inside a string is accepted. [V] L-05
 - Single quotes are not string delimiters. [V] L-15
+- A `$` in a string must be followed by a name, `(` or `[`; a regular expression anchor needs `\$`. [V] L-23
 
 ### 2.7 Numbers, times, addresses and other literals
 The documentation lists the types (`num`, `bool`, `str`, `ip`, `ip-prefix`, `ip6`, `ip6-prefix`, `id`, `time`,
@@ -77,7 +82,7 @@ specified. [?] T-01. Observed spellings [V]: `0xFF`, `*1A`, `10s`, `1d2h3m`, `00
 - Letters and digits. Any other character requires double quotes around the name. [D] *Variables*
 - Case-sensitive. [D]
 - `$"my-var"` refers to a quoted name. [D]
-- In practice: ASCII letters and digits only, may start with a digit, `_` and `-` need quotes. [V] V-07
+- In practice: ASCII letters and digits only, may start with a digit, `_` and `-` need quotes. [V] V-07, V-18
 
 ## 3. Operators
 
@@ -93,6 +98,7 @@ specified. [?] T-01. Observed spellings [V]: `0xFF`, `*1A`, `10s`, `1d2h3m`, `00
 - Precedence and associativity are not specified. [?] O-01
 - For division the dividend must be in parentheses or surrounded by spaces so it is not read as an IP address. [D]
 - Bare names inside `( )` act as variable references (`(-a)`, `(a&&b)` in the documentation's examples). [X] O-07
+- Inside `( )` operands may stand next to each other; an empty group, a missing operand and two binary operators are errors. [V] O-10
 
 ## 4. Command lines
 
@@ -109,6 +115,8 @@ specified. [?] T-01. Observed spellings [V]: `0xFF`, `*1A`, `10s`, `1d2h3m`, `00
 - A menu path can use spaces or slashes (`/ip route get`, `/interface/print`, `system/script/run`). [X] They are equivalent. [V] P-01
 - The current menu path set by one line applies to following lines, also inside blocks. [V] P-02 (documentation lists `/` and `..` but never says this)
 - Names can be abbreviated to any unambiguous prefix. [V] C-10
+- A command line cannot start with a string, `=`, `!`, `,`, `~` or `*`, and command and menu words are lowercase. [V] L-22
+- Which lines change the current menu path, and where the change carries on, is described in section 4.4. [V] P-05, P-06
 
 ### 4.1 Global commands
 Every global command "should start with `:`", otherwise it is treated as a variable. [D] The device accepts several without the colon. [?] C-01
@@ -138,6 +146,15 @@ The notation (`<x>`, `[x]`, `[num]`, `[arg]`) is informal and carries no machine
 `add`, `remove`, `enable`, `disable`, `set`, `get`, `print`, `export`, `edit`, `find`. [D] The documented `print` parameters
 are a closed list of "the most common" ones. [D] The grammar of the `where` expression is not specified. [?] C-13
 
+### 4.4 Menu path state
+
+- A line that is nothing but a path (`/ip address`, `address`, `..`, `/`) changes the current path. A full command (`/ip address print`) does not. [V] P-05
+- The path is resolved while the file is compiled, in source order. It carries on from the top level, a bare `{ }`, a statement-level
+  `[ ]` and a path block (`/ip { route }`). The bodies of `:if`, `:do`, `:while`, `:for`, `:foreach`, `:onerror`, `:retry`,
+  `:execute` and functions, and every command argument, start from the path in effect but do not change it. [V] P-05
+- A relative word is looked up only in the current menu. Inside a menu a global command needs the colon (`:put`). [V] P-06
+- A command substitution that is an argument runs in the menu of the command it belongs to: `/ip address remove [find]`. [V] C-14
+
 ## 5. Variables and scopes
 
 - Two kinds: `global` (accessible from all scripts of the current user) and `local` (the current scope). [D]
@@ -146,7 +163,12 @@ are a closed list of "the most common" ones. [D] The grammar of the `where` expr
 - "Every variable ... must be declared before usage ... Undeclared variables ... result in a compilation error." [D]
   On the device only `:set` of an undeclared name is an error; reading one gives nothing. [?] V-01
 - `:set name` with no value removes the variable. [D]
-- Each line written in the terminal is its own local scope. [D] For an imported file the same holds for each top-level command. [V] V-03
+- Each line written in the terminal is its own local scope. [D] For an imported file the same holds for each line: commands separated
+  by `;` on one line share a scope. [V] V-03, V-16
+- `:set name` needs `name` declared earlier in the same or an enclosing block (`:local`, `:global`, the variable of `:for`, `:foreach`
+  or `:onerror`). A function body sees none of the declarations around it. Quoted names and array elements are not checked. [V] V-15
+- Reading a variable that does not exist gives an empty value. A global is found by name from anywhere; an outer local is not visible
+  inside a function body. [V] V-17
 - Built-in properties are reserved variable names. [D] They cannot be enumerated from this page. [?] V-10
 - Variables set by the environment (DHCP lease scripts, hotspot on-login) are exempt. [D] Their names are not listed. [?] V-14
 

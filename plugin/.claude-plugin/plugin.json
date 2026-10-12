@@ -1,0 +1,14 @@
+{
+  "name": "routeros-lsp",
+  "displayName": "RouterOS Language Server",
+  "version": "0.1.0",
+  "description": "Syntax errors, unknown commands and parameters, and completions for MikroTik RouterOS scripts (.rsc), from the routeros-lsp language server.",
+  "author": {
+    "name": "WireSage",
+    "url": "https://github.com/wiresage"
+  },
+  "homepage": "https://github.com/wiresage/routeros-lsp",
+  "repository": "https://github.com/wiresage/routeros-lsp",
+  "license": "MIT",
+  "keywords": ["routeros", "mikrotik", "rsc", "lsp", "language-server"]
+}

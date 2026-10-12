@@ -7,7 +7,7 @@ plugin reference, and about 330 conformance probes run on RouterOS 7.21.4 (`rese
 ## 1. What the research settled
 
 1. The documentation specifies the language only loosely: no precedence table, no literal spellings, no command catalogue.
-   [ambiguities.md](ambiguities.md) lists 60 gaps and conflicts, each with device evidence and a proposed default.
+   [ambiguities.md](ambiguities.md) lists more than 70 gaps and conflicts, each with device evidence and a proposed default.
 2. RouterOS can check a `.rsc` file itself: `/import file.rsc verbose=yes dry-run` reports every error with line and column, flags
    unknown commands and parameters (`bad command name`, `expected end of command`) and missing required arguments, executes nothing.
    It is the test oracle for the whole project.
@@ -21,12 +21,12 @@ plugin reference, and about 330 conformance probes run on RouterOS 7.21.4 (`rese
 
 Language and runtime: TypeScript on Node.js, ESM, `vscode-languageserver` and `vscode-languageserver-textdocument`
 (the same stack as typescript-language-server). Node 20 or newer; typescript-language-server requires 22.22.2, which this
-machine (22.14) would not meet. Hand-written lexer and parser: the grammar is context sensitive and zero native dependencies keeps
-the plugin install trivial.
+machine (22.14) would not meet. Hand-written scannerless parser: the grammar is context sensitive, so a separate lexer would have
+to be told the context anyway, and zero native dependencies keeps the plugin install trivial.
 
 ```
-text -> lexer (modes: statement, argument, expression, string) -> parser (recursive descent, error recovery)
-     -> syntax tree -> binder (scopes, symbols, menu-path state) -> checker (rules) -> diagnostics
+text -> parser (scannerless, recursive descent, error recovery)
+     -> syntax tree -> binder (scopes, declarations) -> checkers (variables, menu path and commands) -> diagnostics
                                    |                        ^
                           schema (generated command database) ----> completion, hover, signature help
 ```
@@ -37,10 +37,10 @@ Repository layout:
 routeros-lsp/
   AGENTS.md  README.md  CONTRIBUTING.md  LICENSE
   package.json  tsconfig.json  vitest.config.ts  eslint.config.js
-  src/  cli.ts  server.ts  config.ts
-        lexer/  parser/  ast.ts  binder/  checker/rules/  schema/  features/
+  src/  cli.ts  server.ts  config.ts  rules.ts  analyze.ts
+        syntax/  binder/  checker/  schema/  features/
   data/            generated command database per RouterOS version (committed, gzipped)
-  tools/           gen-schema (walks /console/inspect)   conformance (runs the corpus through /import dry-run)
+  tools/           gen_schema.py (walks /console/inspect and compiles probe lines)
   test/            unit, fixtures (.rsc with expected diagnostics), conformance (recorded verdicts), protocol (stdio e2e)
   docs/            grammar.md  ambiguities.md  architecture.md  configuration.md  features.md
   plugin/          Claude Code plugin: .lsp.json  (separate repo is an option)
@@ -52,7 +52,7 @@ Design rules that follow from the research:
   documentation section. Nothing from the `device` or `open` classes is presented as the language specification.
 - Where the docs and the device disagree: the device-verified behaviour wins for errors that make a script fail (L-01), and the
   docs win for anything the device merely tolerates (V-08, O-03), reported as a warning. This is the one policy decision I need from you.
-- Menu path is global state tracked across lines, blocks and substitutions (P-02).
+- Menu path is state tracked while the file is compiled, in source order; only a path-only line changes it (P-02, P-05, P-06).
 - The server is quiet on stdout; logs go to stderr or a file.
 - Settings: RouterOS version, severity per rule, extra contextual variable names, strict mode for open items.
 
