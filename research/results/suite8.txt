@@ -1,0 +1,69 @@
+version: 7.21.4 (long-term)
+
+== ADJACENT TOKENS IN A COMMAND WITH TWO UNNAMED ARGUMENTS
+y0   check :log info x                                                  -> OK   # baseline: topic and message as bare words
+y1   check :log info a"b"                                               -> ERR: expected end of command (line 1 column 12)   [Script Error: found 1 error(s) in import file]   # word then string, no space
+y2   check :log info "a"b                                               -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then word, no space
+y3   check :log info "a""b"                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then string, no space
+y4   check :local a 1; :local b 2; :log info $a$b                       -> ERR: expected end of command (line 1 column 37)   [Script Error: found 1 error(s) in import file]   # variable then variable, no space
+y5   check :local a 1; :log info a$a                                    -> ERR: expected end of command (line 1 column 24)   [Script Error: found 1 error(s) in import file]   # word then variable, no space
+y6   check :local a 1; :log info "a"$a                                  -> ERR: expected end of command (line 1 column 26)   [Script Error: found 1 error(s) in import file]   # string then variable, no space
+y7   check :log info (1)(2)                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # group then group, no space
+y8   check :log info [:len "a"][:len "b"]                               -> ERR: expected end of command (line 1 column 21)   [Script Error: found 1 error(s) in import file]   # substitution then substitution, no space
+y9   check :log info a(1)                                               -> ERR: expected end of command (line 1 column 12)   [Script Error: found 1 error(s) in import file]   # word then group, no space
+y10  check :log info {1}{2}                                             -> ERR: syntax error (line 1 column 11)   [Script Error: found 1 error(s) in import file]   # block then block, no space
+y11  check :log info (1)"a"                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # group then string, no space
+y12  check :log info "a" "b" "c"                                        -> ERR: expected end of command (line 1 column 15)   [Script Error: found 1 error(s) in import file]   # three unnamed arguments (one too many)
+y13  check :log info x # trailing                                       -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # trailing comment after the two arguments
+y14  check :log info x y # trailing                                     -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # trailing comment after two arguments and one more
+y15  check :log info x;# ok                                             -> OK   # comment after ; with no space
+y16  check :log info #x                                                 -> OK   # comment-looking second argument
+y17  check :log info x#y                                                -> OK   # # inside the second argument
+y18  check :log info 1#y                                                -> OK   # # after a digit
+y19  check :log info 1a#y                                               -> OK   # # after digit-letter
+y20  check :log info a#                                                 -> OK   # # at the end of a word
+
+== SPACES AROUND OPERATORS IN COMMAND ARGUMENTS AND WHERE
+y30  check /ip address print where disabled = no                        -> ERR: expected yes or no (line 1 column 35)   [Script Error: found 1 error(s) in import file]   # spaced = after where
+y31  check /ip address print where disabled =no                         -> OK   # space before = only
+y32  check /ip address print where disabled= no                         -> ERR: expected yes or no (line 1 column 34)   [Script Error: found 1 error(s) in import file]   # space after = only
+y33  check /ip address print where address = 1.1.1.1/32                 -> ERR: syntax error (line 1 column 34)   [Script Error: found 1 error(s) in import file]   # spaced = with an address
+y34  check /ip address print where (address = "x")                      -> ERR: syntax error (line 1 column 35)   [Script Error: found 1 error(s) in import file]   # spaced = inside parentheses
+y35  check /ip address print where address ~ "x"                        -> OK   # spaced ~
+y36  check /ip address print where !disabled && dynamic                 -> OK   # && without a number
+y37  check /ip address print where disabled=no&&dynamic=no              -> ERR: expected yes or no (line 1 column 34)   [Script Error: found 1 error(s) in import file]   # && without spaces
+y38  check /ip address print where disabled=no and dynamic=no or invali -> OK   # and/or chain
+y39  check /ip address print where interface in {"ether1";"ether2"}     -> OK   # in with an array
+y40  check :put (1 = 1)                                                 -> OK   # spaced = in parentheses
+y41  check :if ($a = 1) do={ }                                          -> OK   # spaced = in :if
+y42  check :if ($a=1) do={ }                                            -> OK   # = without spaces in :if
+y43  check :local a 1; :if ($a > 0) do={ }                              -> OK   # spaced > in :if
+y44  check :local a 1; :if ($a>0) do={ }                                -> OK   # > without spaces in :if
+y45  check :local a 1; :put ($a+1)                                      -> OK   # plus without spaces
+y46  check :local a 1; :put ($a +1)                                     -> OK   # plus, space before only
+y47  check :local a 1; :put ($a+ 1)                                     -> OK   # plus, space after only
+
+== FUNCTION CALLS AND MIXED FORMS
+y50  check :global f do={ :put $1 }; $f 1 2                             -> OK   # call with two unnamed arguments
+y51  check :global f do={ :put $a }; $f a=1 b=2                         -> OK   # call with named arguments
+y52  check :global f do={ :put $a }; [$f a=1]                           -> OK   # call as a substitution
+y53  check :global f do={ :put $a }; :put [$f a=1]                      -> OK   # call inside :put
+y54  check :global f do={ :put $a }; $f a=(1+2) b="x"                   -> OK   # call with expression argument
+y55  check :local a {1;2}; :foreach i in=$a do={ :put $i }              -> OK   # foreach over a variable
+y56  check :local a [:toarray "1,2"]; :put [:len $a]                    -> OK   # toarray and len
+y57  check :do { :put 1 } while=(false)                                 -> OK   # do while
+y58  check :local i 0; :while ($i < 3) do={ :set i ($i + 1) }           -> OK   # while loop
+y59  check :local i 0; :while ($i<3) do={ :set i ($i+1) }               -> OK   # while loop, no spaces
+y60  check :local s "a"; :set s ($s . "b")                              -> OK   # string concatenation
+y61  check :local s "a"; :set s ($s."b")                                -> OK   # string concatenation without spaces
+y62  check :local a 1; :local b ($a . 2)                                -> OK   # concatenation with a number
+y63  check :put "a" . "b"                                               -> ERR: expected end of command (line 1 column 10)   [Script Error: found 1 error(s) in import file]   # concatenation outside parentheses
+y64  check :global g 1; :put $g                                         -> OK   # global then read
+y65  check :local a; :set a 1; :put $a                                  -> OK   # declare, set, read
+y66  check :local a; :set $a 1                                          -> OK   # set with a $ name
+y67  check :local a 1; :set a (a + 1)                                   -> OK   # bare name in an expression
+y68  check :if ([:len "a"] > 0) do={ }                                  -> OK   # substitution inside a comparison
+y69  check :if ([/ip address print count-only] > 0) do={ }              -> OK   # menu command inside a comparison
+y70  check :if ([:len "a"]>0) do={ }                                    -> OK   # substitution comparison without spaces
+
+cleanup: probe files left on the router: 0

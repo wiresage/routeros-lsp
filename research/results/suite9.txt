@@ -1,0 +1,98 @@
+version: 7.21.4 (long-term)
+
+== A WORD CHARACTER THEN A STRING (:log info a<c>"x")
+s1   check :log info a~"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char ~ then string
+s2   check :log info a!"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char ! then string
+s3   check :log info a<"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char < then string
+s4   check :log info a>"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char > then string
+s5   check :log info a&"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char & then string
+s6   check :log info a|"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char | then string
+s7   check :log info a^"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char ^ then string
+s8   check :log info a+"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char + then string
+s9   check :log info a%"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char % then string
+s10  check :log info a*"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char * then string
+s11  check :log info a-"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char - then string
+s12  check :log info a."x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char . then string
+s13  check :log info a,"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char , then string
+s14  check :log info a/"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char / then string
+s15  check :log info a:"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char : then string
+s16  check :log info a#"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char # then string
+s17  check :log info a="x"                                              -> ERR: expected end of command (line 1 column 12)   [Script Error: found 1 error(s) in import file]   # char = then string
+s18  check :log info a@"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char @ then string
+s19  check :log info a_"x"                                              -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char _ then string
+s20  check :log info a&&"x"                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # char && then string
+s21  check :log info a||"x"                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # char || then string
+s22  check :log info a!="x"                                             -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char != then string
+s23  check :log info a<="x"                                             -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char <= then string
+s24  check :log info a>="x"                                             -> ERR: expected end of command (line 1 column 13)   [Script Error: found 1 error(s) in import file]   # char >= then string
+s25  check :log info a<<"x"                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # char << then string
+s26  check :log info a>>"x"                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # char >> then string
+s27  check :log info a->"x"                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # char -> then string
+s28  check :log info a~~"x"                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # char ~~ then string
+
+== A STRING THEN A WORD CHARACTER (:log info "x"<c>a)
+s29  check :log info "x"~a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char ~
+s30  check :log info "x"!a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char !
+s31  check :log info "x"<a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char <
+s32  check :log info "x">a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char >
+s33  check :log info "x"&a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char &
+s34  check :log info "x"|a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char |
+s35  check :log info "x"^a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char ^
+s36  check :log info "x"+a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char +
+s37  check :log info "x"%a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char %
+s38  check :log info "x"*a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char *
+s39  check :log info "x"-a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char -
+s40  check :log info "x".a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char .
+s41  check :log info "x",a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char ,
+s42  check :log info "x"/a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char /
+s43  check :log info "x":a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char :
+s44  check :log info "x"#a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char #
+s45  check :log info "x"=a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char =
+s46  check :log info "x"@a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char @
+s47  check :log info "x"_a                                              -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char _
+s48  check :log info "x"&&a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char &&
+s49  check :log info "x"||a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char ||
+s50  check :log info "x"!=a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char !=
+s51  check :log info "x"<=a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char <=
+s52  check :log info "x">=a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char >=
+s53  check :log info "x"<<a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char <<
+s54  check :log info "x">>a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char >>
+s55  check :log info "x"->a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char ->
+s56  check :log info "x"~~a                                             -> ERR: expected end of command (line 1 column 14)   [Script Error: found 1 error(s) in import file]   # string then char ~~
+
+== A WORD CHARACTER THEN A VARIABLE, GROUP, SUBSTITUTION
+s57  check :local v 1; :log info a~$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char ~ then var
+s58  check :local v 1; :log info a~(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char ~ then group
+s59  check :local v 1; :log info a~[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char ~ then subst
+s60  check :local v 1; :log info a!$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char ! then var
+s61  check :local v 1; :log info a!(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char ! then group
+s62  check :local v 1; :log info a![:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char ! then subst
+s63  check :local v 1; :log info a<$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char < then var
+s64  check :local v 1; :log info a<(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char < then group
+s65  check :local v 1; :log info a<[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char < then subst
+s66  check :local v 1; :log info a&$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char & then var
+s67  check :local v 1; :log info a&(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char & then group
+s68  check :local v 1; :log info a&[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char & then subst
+s69  check :local v 1; :log info a+$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char + then var
+s70  check :local v 1; :log info a+(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char + then group
+s71  check :local v 1; :log info a+[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char + then subst
+s72  check :local v 1; :log info a-$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char - then var
+s73  check :local v 1; :log info a-(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char - then group
+s74  check :local v 1; :log info a-[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char - then subst
+s75  check :local v 1; :log info a.$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char . then var
+s76  check :local v 1; :log info a.(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char . then group
+s77  check :local v 1; :log info a.[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char . then subst
+s78  check :local v 1; :log info a,$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char , then var
+s79  check :local v 1; :log info a,(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char , then group
+s80  check :local v 1; :log info a,[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char , then subst
+s81  check :local v 1; :log info a=$v                                   -> ERR: expected end of command (line 1 column 24)   [Script Error: found 1 error(s) in import file]   # char = then var
+s82  check :local v 1; :log info a=(1)                                  -> ERR: expected end of command (line 1 column 24)   [Script Error: found 1 error(s) in import file]   # char = then group
+s83  check :local v 1; :log info a=[:len x]                             -> ERR: expected end of command (line 1 column 24)   [Script Error: found 1 error(s) in import file]   # char = then subst
+s84  check :local v 1; :log info a/$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char / then var
+s85  check :local v 1; :log info a/(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char / then group
+s86  check :local v 1; :log info a/[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char / then subst
+s87  check :local v 1; :log info a:$v                                   -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char : then var
+s88  check :local v 1; :log info a:(1)                                  -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char : then group
+s89  check :local v 1; :log info a:[:len x]                             -> ERR: expected end of command (line 1 column 25)   [Script Error: found 1 error(s) in import file]   # char : then subst
+
+cleanup: probe files left on the router: 0
