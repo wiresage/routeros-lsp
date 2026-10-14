@@ -1,4 +1,4 @@
-"""Builds test/conformance/cases.json from the recorded probe suites and their results.
+"""Builds tests/conformance/cases.json from the recorded probe suites and their results.
 
 Only `check` probes are kept: they are the ones that `/import ... dry-run` judged without running anything.
 Usage: python research/tools/build_corpus.py
@@ -84,7 +84,7 @@ def main():
                 else:
                     case["message"] = re.sub(r"^ERR: ", "", verdict)
             cases.append(case)
-    dest = ROOT / "test" / "conformance" / "cases.json"
+    dest = ROOT / "tests" / "conformance" / "cases.json"
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(cases, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {len(cases)} cases to {dest.relative_to(ROOT)}; no recorded verdict for: {skipped}")

@@ -2,7 +2,7 @@
 writes the answers to a JSON file that the checker is compared against (see research/README.md).
 
 Usage:
-    MIKROTIK_INVENTORY_FILE=... python research/tools/differential.py data/routeros-7.21.4.json.gz out.json [--device RouterA]
+    MIKROTIK_INVENTORY_FILE=... python research/tools/differential.py src/routeros_lsp/data/routeros-7.21.4.json.gz out.json [--device RouterA]
 
 Every line is compiled with /import dry-run. Nothing is executed and nothing is changed on the router.
 """

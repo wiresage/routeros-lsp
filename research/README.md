@@ -1,7 +1,7 @@
 # Research harness
 
 How the facts in [docs/grammar.md](../docs/grammar.md) and [docs/ambiguities.md](../docs/ambiguities.md) were gathered. This is
-Python research tooling, not part of the server. The recorded answers it produced are replayed by `test/conformance/`, which needs
+Python research tooling, not part of the server. The recorded answers it produced are replayed by `tests/conformance/`, which needs
 no router.
 
 ## What is here
@@ -12,8 +12,8 @@ no router.
 | `results/suite*.txt` | What RouterOS 7.21.4 answered, one line per probe. |
 | `results/command-tree-summary.json` | Size of the command tree read from `/console/inspect`. |
 | `tools/probe.py` | Runs a suite against a router and prints one line per probe. |
-| `tools/build_corpus.py` | Turns the `check` probes and their answers into `test/conformance/cases.json`. |
-| `tools/check_files.py` | Compiles local `.rsc` files with `dry-run` and prints a verdict for each (used for `test/fixtures/verdicts.json`). |
+| `tools/build_corpus.py` | Turns the `check` probes and their answers into `tests/conformance/cases.json`. |
+| `tools/check_files.py` | Compiles local `.rsc` files with `dry-run` and prints a verdict for each (used for `tests/fixtures/verdicts.json`). |
 | `tools/differential.py` | Generates command lines from the command database (valid, abbreviated, repeated, with an unknown parameter, with a flag) and records what the router says about each. |
 | `tools/walk.py` | Reads the command tree with `/console/inspect` (read only). The command database itself is made by `../tools/gen_schema.py`. |
 | `tools/h2t.py` | Turns a Confluence page into text, used to read the documentation. |
@@ -41,12 +41,12 @@ MIKROTIK_INVENTORY_FILE=/path/to/inventory.yml .venv/Scripts/python tools/probe.
 ```
 
 After adding a suite, register it in `tools/build_corpus.py` and run `python research/tools/build_corpus.py`. Then run the tests
-and put every case the server does not match yet into `test/conformance/known-gaps.json` with a reason.
+and put every case the server does not match yet into `tests/conformance/known-gaps.json` with a reason.
 
 The differential run compares the checker with the router on thousands of generated lines:
 
 ```bash
-MIKROTIK_INVENTORY_FILE=... python research/tools/differential.py data/routeros-7.21.4.json.gz answers.json
+MIKROTIK_INVENTORY_FILE=... python research/tools/differential.py src/routeros_lsp/data/routeros-7.21.4.json.gz answers.json
 ```
 
 The harness never contains credentials; it reads them from the inventory at run time. Probe files are removed from the router at

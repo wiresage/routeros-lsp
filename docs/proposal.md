@@ -4,6 +4,11 @@ Status: in progress. The maintainer asked to go ahead after seeing this plan and
 Research: the whole Scripting page, the typescript-language-server repo, the Claude Code `typescript-lsp` plugin and its
 plugin reference, and about 330 conformance probes run on RouterOS 7.21.4 (`research/`).
 
+> **Update, October 2026:** this plan was written for TypeScript on Node. Before the first release the server was ported to
+> Python (3.10 or newer, no runtime dependencies) so that it can be published to PyPI the way the sibling `mikrotik-mcp` project
+> is. The paths, tooling and runtime named below describe the original plan; [architecture.md](architecture.md) describes what
+> exists now. The behaviour, the rules and the evidence did not change: the same recorded router answers pass.
+
 ## 1. What the research settled
 
 1. The documentation specifies the language only loosely: no precedence table, no literal spellings, no command catalogue.

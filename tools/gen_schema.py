@@ -7,7 +7,7 @@ arguments are required and how many unnamed arguments a command takes by compili
 there is `lspgen.rsc`, which it removes again.
 
 Usage:
-    ROUTEROS_PASSWORD=... python tools/gen_schema.py --host 192.0.2.1 --user admin --out data/routeros-7.21.4.json.gz
+    ROUTEROS_PASSWORD=... python tools/gen_schema.py --host 192.0.2.1 --user admin --out src/routeros_lsp/data/routeros-7.21.4.json.gz
 
 Needs `pip install paramiko`. The device decides what is in the database: menus of packages that are not installed
 (wireless, LTE ...) and parameters that only some hardware has are missing. Generate the file from your own device to

@@ -1,13 +1,25 @@
-node_modules/
-lib/
-*.tsbuildinfo
-coverage/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# editors and OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 *.log
 .env
+
 # research harness
 research/.venv/
 research/**/__pycache__/

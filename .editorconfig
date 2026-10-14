@@ -11,10 +11,13 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
-[test/fixtures/**]
+[tests/fixtures/**]
 insert_final_newline = unset
 trim_trailing_whitespace = unset
 end_of_line = unset
 
 [*.py]
 indent_size = 4
+
+[*.{yml,yaml}]
+indent_size = 2

@@ -5,13 +5,14 @@ changing how a piece of RouterOS syntax is handled, find out what the documentat
 
 ## Setup
 
-Node.js 20 or newer.
+Python 3.10 or newer. The server has no runtime dependencies; the development tools are in the `dev` extra.
 
 ```bash
 git clone https://github.com/wiresage/routeros-lsp.git
 cd routeros-lsp
-npm install
-npm run typecheck && npm run lint && npm test
+python -m venv .venv && . .venv/bin/activate     # on Windows: .venv/Scripts/activate
+pip install -e ".[dev]"
+ruff check . && ruff format --check . && mypy && pytest
 ```
 
 No router is needed for the tests.
@@ -20,13 +21,13 @@ No router is needed for the tests.
 
 | You want to | Change |
 |---|---|
-| Fix how text is tokenized or parsed | `src/syntax/parser.ts`, with a test in `test/syntax/` |
-| Fix variable scope or name rules | `src/binder/binder.ts` or `src/checker/variables.ts`, with a test in `test/checker/` |
-| Fix how menus, commands and parameters are checked | `src/checker/commands.ts`, with a test in `test/checker/commands.test.ts` (it uses the small schema in `test/fixtures/mini-schema.json`) |
-| Add or change a diagnostic | `src/rules.ts` plus the stage that reports it; then `UPDATE_DOCS=1 npm test` |
-| Change the command database | regenerate it with `tools/gen_schema.py`; never edit `data/*.json.gz` by hand |
+| Fix how text is tokenized or parsed | `src/routeros_lsp/syntax/parser.py`, with a test in `tests/test_parser.py` |
+| Fix variable scope or name rules | `src/routeros_lsp/binder/binder.py` or `src/routeros_lsp/checker/variables.py`, with a test in `tests/test_variables.py` |
+| Fix how menus, commands and parameters are checked | `src/routeros_lsp/checker/commands.py`, with a test in `tests/test_commands.py` (it uses the small schema in `tests/fixtures/mini-schema.json`) |
+| Add or change a diagnostic | `src/routeros_lsp/rules.py` plus the stage that reports it; then `UPDATE_DOCS=1 pytest tests/test_docs.py` |
+| Change the command database | regenerate it with `tools/gen_schema.py`; never edit `src/routeros_lsp/data/*.json.gz` by hand |
 | Add a behaviour fact about RouterOS | a probe in `research/suites/`, its recorded answer in `research/results/`, a row in `docs/ambiguities.md` if the documentation is silent or wrong, then `python research/tools/build_corpus.py` |
-| Add an LSP feature | `src/features/`, wired in `src/server.ts`, with unit tests and a protocol test in `test/protocol/` |
+| Add an LSP feature | `src/routeros_lsp/features/`, wired in `src/routeros_lsp/server.py`, with unit tests and a protocol test in `tests/test_server.py` |
 
 ## Rules for diagnostics
 
@@ -54,19 +55,21 @@ nothing. See [research/README.md](research/README.md). Probes must not change th
 
 ## Testing
 
-- `npm test` runs everything that needs no router.
-- Conformance cases are recorded router answers in `test/conformance/`. A case the implementation does not match yet goes in the
+- `pytest` runs everything that needs no router.
+- Conformance cases are recorded router answers in `tests/conformance/`. A case the implementation does not match yet goes in the
   known-gaps list with a reason; it must not be deleted, and the test fails when a listed case starts to pass.
-- Real `/export` output and the scripts in `test/fixtures/` must produce no diagnostics. Add a file there, record its verdict with
+- Real `/export` output and the scripts in `tests/fixtures/` must produce no diagnostics. Add a file there, record its verdict with
   `research/tools/check_files.py`, and the test picks it up.
 - A bug fix needs a test that fails without it.
 
 ## Commits and pull requests
 
 - [Conventional Commits](https://www.conventionalcommits.org/): `feat`, `fix`, `docs`, `test`, `refactor`, `perf`, `chore`, `ci`, `build`.
+  They also drive the version: `feat` raises the minor version, `fix`, `perf`, `refactor`, `build`, `ci` and `chore` the patch, and
+  `docs` and `test` change nothing. See [docs/releasing.md](docs/releasing.md).
 - Branches: `<type>/issue-<number>-<short-description>`; use a literal `#` instead of the number when there is no issue
   (`fix/issue-#-escape-handling`). Quote such names in the shell.
-- Open pull requests against `main`. Keep each one to a single concern.
+- Open pull requests against `master`. Keep each one to a single concern.
 - The server must never write anything but LSP messages to stdout.
 
 ## Reporting problems

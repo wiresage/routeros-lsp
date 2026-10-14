@@ -6,9 +6,10 @@ It gives editors and AI coding agents immediate feedback while they write Router
 commands and parameters, variable scope mistakes, and completion and hover from the RouterOS command list. It follows the
 [RouterOS scripting documentation](https://help.mikrotik.com/docs/spaces/ROS/pages/47579229/Scripting), and where the
 documentation is silent or a real router behaves differently, the behaviour was measured on a router and written down in
-[docs/ambiguities.md](docs/ambiguities.md) instead of guessed.
+[docs/ambiguities.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/ambiguities.md) instead of guessed.
 
-> **Status: version 0.1, in development, not published to npm yet.** Build it from source as described below.
+> **Status: version 0.1, in development.** The package is built for PyPI (`routeros-lsp`) by the release pipeline in
+> [`.github/workflows/`](https://github.com/wiresage/routeros-lsp/tree/master/.github/workflows). Until the first release is out, install it from the repository as described below.
 
 ## What it reports
 
@@ -19,40 +20,39 @@ documentation is silent or a real router behaves differently, the behaviour was 
 | Menus and commands | An unknown menu, command or parameter with a "did you mean", an ambiguous abbreviation, a parameter given twice, too many unnamed arguments, a missing required parameter. The menu path is tracked as RouterOS does, so relative commands after `/ip address` are checked in that menu. |
 
 Hover and completion use the same command list: menus and commands, parameters (required ones first), values after `name=`, and
-the variables in scope after `$`. There is also a symbol outline and folding. [docs/features.md](docs/features.md) has the
-details and the limits; [docs/rules.md](docs/rules.md) lists every rule with its default severity.
+the variables in scope after `$`. There is also a symbol outline and folding. [docs/features.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/features.md) has the
+details and the limits; [docs/rules.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/rules.md) lists every rule with its default severity.
 
 A finding is labelled when it rests on RouterOS behaviour that the documentation does not describe, so a quirk of one version
 is never presented as the language specification.
 
 ## Install and use
 
-Build it from source (Node.js 20 or newer):
+Python 3.10 or newer, no other dependencies. Once a release is on PyPI:
 
 ```bash
-git clone https://github.com/wiresage/routeros-lsp.git
-cd routeros-lsp
-npm install
-npm run build
-node lib/cli.mjs --version
+pipx install routeros-lsp      # or: uv tool install routeros-lsp
+routeros-lsp --version
+```
+
+Until then, install straight from the repository:
+
+```bash
+pipx install git+https://github.com/wiresage/routeros-lsp.git
 ```
 
 The server speaks LSP over stdio:
 
 ```bash
-node lib/cli.mjs --stdio
+routeros-lsp --stdio
 ```
 
-Link it as `routeros-lsp` if you want that name on your `PATH`:
-
-```bash
-npm link
-```
+`uvx routeros-lsp --stdio` runs it without installing anything.
 
 ### Claude Code
 
-[`plugin/`](plugin) is a Claude Code plugin that starts the server for `.rsc` files (language id `routeros`). It expects the
-`routeros-lsp` command on your `PATH`. Settings go into its `.lsp.json`; see [docs/configuration.md](docs/configuration.md).
+[`plugin/`](https://github.com/wiresage/routeros-lsp/tree/master/plugin) is a Claude Code plugin that starts the server for `.rsc` files (language id `routeros`). It expects the
+`routeros-lsp` command on your `PATH`. Settings go into its `.lsp.json`; see [docs/configuration.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/configuration.md).
 
 ### Other editors
 
@@ -61,7 +61,7 @@ Start `routeros-lsp --stdio` for the language id `routeros` from any LSP client.
 ## The command list
 
 Menus, commands and parameters come from a database generated from a RouterOS 7.21.4 CHR with `/console/inspect`
-(`data/routeros-7.21.4.json.gz`). A CHR has no wireless, LTE or switch-chip packages and some parameters exist only on some
+(`src/routeros_lsp/data/routeros-7.21.4.json.gz`). A CHR has no wireless, LTE or switch-chip packages and some parameters exist only on some
 hardware, so unknown-name findings are warnings by default. To cover your own hardware, generate the database from your router
 (nothing is executed or changed on it) and point the `schema` setting at it:
 
@@ -73,25 +73,23 @@ ROUTEROS_PASSWORD=... python tools/gen_schema.py --host 192.0.2.1 --user admin -
 ## Develop
 
 ```bash
-npm install
-npm run typecheck
-npm run lint
-npm test
-npm run build      # bundles the server into lib/cli.mjs
+python -m venv .venv && . .venv/bin/activate     # on Windows: .venv/Scripts/activate
+pip install -e ".[dev]"
+ruff check . && mypy && pytest
 ```
 
-The tests need no router. See [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md) and
-[docs/architecture.md](docs/architecture.md).
+The tests need no router. Releases are cut by the pipeline in [docs/releasing.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/releasing.md). See [CONTRIBUTING.md](https://github.com/wiresage/routeros-lsp/blob/master/CONTRIBUTING.md), [AGENTS.md](https://github.com/wiresage/routeros-lsp/blob/master/AGENTS.md) and
+[docs/architecture.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/architecture.md).
 
 ## How the language was pinned down
 
-- [docs/grammar.md](docs/grammar.md): the grammar derived from the documentation, each rule tagged as documented, shown by an
+- [docs/grammar.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/grammar.md): the grammar derived from the documentation, each rule tagged as documented, shown by an
   example, observed on a device, or open.
-- [docs/ambiguities.md](docs/ambiguities.md): every gap and conflict, with evidence from RouterOS 7.21.4 and the default used.
-- [research/](research/): the probes that produced that evidence. RouterOS can check a script without running it
-  (`/import file.rsc verbose=yes dry-run`), which is the test oracle for this project; `test/conformance/` replays more than
+- [docs/ambiguities.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/ambiguities.md): every gap and conflict, with evidence from RouterOS 7.21.4 and the default used.
+- [research/](https://github.com/wiresage/routeros-lsp/tree/master/research): the probes that produced that evidence. RouterOS can check a script without running it
+  (`/import file.rsc verbose=yes dry-run`), which is the test oracle for this project; `tests/conformance/` replays more than
   800 recorded answers.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/wiresage/routeros-lsp/blob/master/LICENSE)
