@@ -8,8 +8,13 @@ commands and parameters, variable scope mistakes, and completion and hover from 
 documentation is silent or a real router behaves differently, the behaviour was measured on a router and written down in
 [docs/ambiguities.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/ambiguities.md) instead of guessed.
 
-> **Status: version 0.1, in development.** The package is built for PyPI (`routeros-lsp`) by the release pipeline in
-> [`.github/workflows/`](https://github.com/wiresage/routeros-lsp/tree/master/.github/workflows). Until the first release is out, install it from the repository as described below.
+[![PyPI](https://img.shields.io/pypi/v/routeros-lsp)](https://pypi.org/project/routeros-lsp/)
+[![Python](https://img.shields.io/pypi/pyversions/routeros-lsp)](https://pypi.org/project/routeros-lsp/)
+[![CI](https://github.com/wiresage/routeros-lsp/actions/workflows/ci.yml/badge.svg)](https://github.com/wiresage/routeros-lsp/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/wiresage/routeros-lsp/blob/master/LICENSE)
+
+> **Status: version 0.x, early releases.** Published to PyPI as `routeros-lsp` by the pipeline described in
+> [docs/releasing.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/releasing.md).
 
 ## What it reports
 
@@ -28,14 +33,14 @@ is never presented as the language specification.
 
 ## Install and use
 
-Python 3.10 or newer, no other dependencies. Once a release is on PyPI:
+Python 3.10 or newer, no other dependencies:
 
 ```bash
 pipx install routeros-lsp      # or: uv tool install routeros-lsp
 routeros-lsp --version
 ```
 
-Until then, install straight from the repository:
+To try the unreleased `master`, install straight from the repository:
 
 ```bash
 pipx install git+https://github.com/wiresage/routeros-lsp.git
