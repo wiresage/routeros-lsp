@@ -13,9 +13,6 @@ documentation is silent or a real router behaves differently, the behaviour was 
 [![CI](https://github.com/wiresage/routeros-lsp/actions/workflows/ci.yml/badge.svg)](https://github.com/wiresage/routeros-lsp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/wiresage/routeros-lsp/blob/master/LICENSE)
 
-> **Status: version 0.x, early releases.** Published to PyPI as `routeros-lsp` by the pipeline described in
-> [docs/releasing.md](https://github.com/wiresage/routeros-lsp/blob/master/docs/releasing.md).
-
 ## What it reports
 
 | Area | Examples |
