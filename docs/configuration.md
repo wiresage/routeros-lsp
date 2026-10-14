@@ -45,6 +45,12 @@ Nothing is executed and nothing is changed on the router; the tool reads `/conso
 { "schema": "/path/to/my-router.json.gz" }
 ```
 
+## Command line
+
+`routeros-lsp check` takes the same settings as options: `--scope import|script`, `--schema bundled|off|FILE`,
+`--severity RULE=LEVEL` (repeatable) and `--context-variable NAME` (repeatable). They go through the same validation as the
+editor settings; a wrong one is an error with exit status 2 instead of a log line.
+
 ## Claude Code
 
 The plugin in [`plugin/`](../plugin) starts the server for `.rsc` files. Settings go into its `.lsp.json`:
