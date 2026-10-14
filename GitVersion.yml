@@ -1,0 +1,33 @@
+# GitVersion configuration
+#
+# Strategy: GitHub Flow. All pull requests merge directly to master; there are no develop or release branches.
+#
+# Version format (the same string is used everywhere):
+#   PyPI package, git tag and GitHub release:   MAJOR.MINOR.PATCH     e.g. 0.1.0     (tag: v0.1.0)
+#
+# Bump rules (Conventional Commits):
+#   feat:                               Minor bump  0.x.0
+#   fix | chore | refactor | perf | ... Patch bump  0.0.x
+#   docs: | doc: | documentation:        No bump     (a docs-only push does not run the release pipeline at all:
+#                                                    see the paths guard in publish.yml)
+#   untyped message                     Patch bump  (fallback via the branch increment)
+#   +semver: breaking  (footer)         Major bump  (EMERGENCY: major stays 0 until the language server is declared stable)
+
+mode: ContinuousDelivery
+next-version: 0.1.0
+
+# Parse every commit from HEAD back to the version source; the highest matching rule wins.
+commit-message-incrementing: Enabled
+
+major-version-bump-message: '^\+semver:\s*(breaking|major)'
+minor-version-bump-message: '^feat(\(.+\))?!?:'
+patch-version-bump-message: '^(fix|chore|refactor|perf|style|ci|test|build|revert)(\(.+\))?!?:'
+no-bump-message: '^(docs?|documentation)(\(.+\))?!?:'
+
+branches:
+  master:
+    regex: ^master$
+    mode: ContinuousDelivery
+    label: ''
+    increment: Patch
+    is-release-branch: true
