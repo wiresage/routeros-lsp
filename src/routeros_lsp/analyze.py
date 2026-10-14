@@ -61,7 +61,7 @@ def analyze(
     severities: Mapping[str, str] | None = None,
     scope: str = "import",
     context_variables: Collection[str] = DEFAULT_CONTEXT_VARIABLES,
-    schema: Schema | None | _Unset = UNSET,
+    schema: Schema | _Unset | None = UNSET,
 ) -> Analysis:
     """Analyses ``text``.
 
@@ -80,7 +80,7 @@ def _analyze(
     severities: Mapping[str, str] | None,
     scope: str,
     context_variables: Collection[str],
-    schema: Schema | None | _Unset,
+    schema: Schema | _Unset | None,
 ) -> Analysis:
     bound = bind(script, text, BindOptions(mode=scope, context_variables=frozenset(context_variables)))
     chosen = bundled_schema() if isinstance(schema, _Unset) else schema
