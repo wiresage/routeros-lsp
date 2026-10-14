@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Collection, Mapping
+from collections.abc import Callable, Collection, Mapping
 from dataclasses import dataclass
 
 from .binder.binder import BindOptions, BindResult, bind
@@ -34,6 +34,21 @@ def bundled_schema() -> Schema | None:
         except (OSError, ValueError):
             _bundled.append(None)
     return _bundled[0]
+
+
+def load_schema(setting: str, warn: Callable[[str], None]) -> Schema | None:
+    """The command database a ``schema`` setting names: ``off``, a file, or the bundled one (also when the file cannot be read)."""
+    if setting == "off":
+        return None
+    if setting != "bundled":
+        try:
+            return Schema.from_file(setting)
+        except (OSError, ValueError) as error:
+            warn(f'cannot read the command database "{setting}" ({error}); using the bundled one')
+    bundled = bundled_schema()
+    if bundled is None:
+        warn("no bundled command database found; menu, command and parameter checks are off")
+    return bundled
 
 
 @dataclass(frozen=True, slots=True)

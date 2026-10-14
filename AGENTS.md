@@ -40,7 +40,8 @@ text -> parser -> syntax tree -> binder -> checkers -> findings -> LSP diagnosti
 ```
 
 ```
-src/routeros_lsp/cli.py        entry point: --stdio, --version, --help
+src/routeros_lsp/cli.py        entry point: --stdio, check, --version, --help
+src/routeros_lsp/cli_check.py  `routeros-lsp check`: the analysis on files, text or JSON output, exit status
 src/routeros_lsp/server.py     JSON-RPC over stdio and the LSP handlers; a failing feature is logged and answered with an empty result
 src/routeros_lsp/analyze.py    runs the stages and applies severity settings
 src/routeros_lsp/rules.py      every diagnostic rule: id, default severity, source, summary

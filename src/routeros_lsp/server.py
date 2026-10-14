@@ -15,7 +15,7 @@ from collections.abc import Callable
 from typing import Any, BinaryIO
 
 from . import __version__
-from .analyze import Analysis, analyze, bundled_schema
+from .analyze import Analysis, analyze, load_schema
 from .config import DEFAULT_SETTINGS, Settings, parse_settings
 from .document import Document
 from .features.completion import completions
@@ -200,17 +200,7 @@ class Server:
         self._config_id += 1
 
     def _load_schema(self, setting: str) -> Schema | None:
-        if setting == "off":
-            return None
-        if setting != "bundled":
-            try:
-                return Schema.from_file(setting)
-            except (OSError, ValueError) as error:
-                self.log(LOG_WARNING, f'cannot read the command database "{setting}" ({error}); using the bundled one')
-        bundled = bundled_schema()
-        if bundled is None:
-            self.log(LOG_WARNING, "no bundled command database found; menu, command and parameter checks are off")
-        return bundled
+        return load_schema(setting, lambda message: self.log(LOG_WARNING, message))
 
     def analysis(self, document: Document) -> Analysis:
         key = (document.revision, self._config_id)

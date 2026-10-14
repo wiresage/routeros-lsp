@@ -25,6 +25,14 @@ Hardware-dependent findings (`schema/unknown-command`, `schema/unknown-parameter
 | `textDocument/documentSymbol` | Functions (`:global name do={ }`), variables declared with `:global` and `:local`, and the menu path headers that divide an export into sections. |
 | `textDocument/foldingRange` | Blocks, commands continued with a backslash, multi-line strings, runs of comment lines. |
 
+## Command line
+
+`routeros-lsp check PATH...` runs the same analysis on files (a directory means every `.rsc` file below it, `-` means standard
+input) and prints `path:line:column: severity: message [rule]`, or JSON with `--format json`. Columns count characters, from 1.
+The exit status is 0 when there is nothing to fix, 1 when errors were found (`--strict`: also warnings) and 2 when a file cannot be
+read or an option is wrong. `--scope`, `--schema`, `--severity RULE=LEVEL` and `--context-variable NAME` are the settings from
+[configuration.md](configuration.md).
+
 ## What is checked against what
 
 - Syntax and variable rules follow RouterOS 7.21.4 as measured with `/import dry-run`; see [ambiguities.md](ambiguities.md).
