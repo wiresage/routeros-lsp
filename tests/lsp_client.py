@@ -27,7 +27,7 @@ class LspClient:
         self.initialize_result: dict[str, Any] = {}
         self.logs: list[dict[str, Any]] = []
         self._cv = threading.Condition()
-        self._responses: dict[int, dict[str, Any]] = {}
+        self._responses: dict[int | None, dict[str, Any]] = {}
         self._published: dict[str, list[dict[str, Any]]] = defaultdict(list)
         self._next_id = 1
         self._closed = False
@@ -70,6 +70,17 @@ class LspClient:
             if request_id not in self._responses:
                 raise ConnectionError(f"the server closed the stream before answering {method}")
             return self._responses.pop(request_id)
+
+    def send_unusable(self, body: bytes) -> dict[str, Any]:
+        """Sends a correctly framed body that is not a JSON-RPC message and returns the answer, which has no request id."""
+        self.writer.write(b"Content-Length: %d\r\n\r\n%s" % (len(body), body))
+        self.writer.flush()
+        with self._cv:
+            if not self._cv.wait_for(lambda: None in self._responses or self._closed, TIMEOUT):
+                raise TimeoutError("no answer to an unusable message")
+            if None not in self._responses:
+                raise ConnectionError("the server closed the stream instead of answering an unusable message")
+            return self._responses.pop(None)
 
     def request(self, method: str, params: dict[str, Any] | None = None) -> Any:
         response = self.request_raw(method, params)

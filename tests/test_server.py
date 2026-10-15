@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import os
 import subprocess
 import sys
@@ -7,6 +8,7 @@ import sys
 import pytest
 
 from routeros_lsp import __version__
+from routeros_lsp.server import MalformedMessage, read_message
 from tests.lsp_client import ROOT, LspClient, in_process, spawned
 
 URI = "file:///work/test.rsc"
@@ -164,6 +166,28 @@ class TestPositions:
         assert client.published(URI)[-1]["version"] == 100
 
 
+class TestFraming:
+    @staticmethod
+    def frame(body: bytes) -> bytes:
+        return b"Content-Length: %d\r\n\r\n%s" % (len(body), body)
+
+    def test_a_malformed_frame_is_consumed_so_the_next_one_can_be_read(self) -> None:
+        stream = io.BytesIO(self.frame(b"{ nope") + self.frame(b'{"jsonrpc": "2.0", "method": "exit"}'))
+        with pytest.raises(MalformedMessage) as raised:
+            read_message(stream)
+        assert raised.value.code == -32700
+        assert read_message(stream) == {"jsonrpc": "2.0", "method": "exit"}
+        assert read_message(stream) is None
+
+    def test_json_that_is_not_an_object_is_an_invalid_request(self) -> None:
+        with pytest.raises(MalformedMessage) as raised:
+            read_message(io.BytesIO(self.frame(b"[1]")))
+        assert raised.value.code == -32600
+
+    def test_a_truncated_body_is_the_end_of_the_stream(self) -> None:
+        assert read_message(io.BytesIO(b"Content-Length: 50\r\n\r\n{}")) is None
+
+
 class TestProtocolManners:
     def test_unknown_requests_are_answered_with_an_error(self, client: LspClient) -> None:
         response = client.request_raw("textDocument/rename", {})
@@ -173,6 +197,30 @@ class TestProtocolManners:
         client.notify("$/cancelRequest", {"id": 1})
         client.notify("workspace/somethingNew", {})
         assert client.open(URI, ":put 1\n") == []
+
+    def test_a_body_that_is_not_json_gets_a_parse_error_and_the_session_goes_on(self, client: LspClient) -> None:
+        response = client.send_unusable(b"{ this is not json")
+        assert response["id"] is None
+        assert response["error"]["code"] == -32700
+        # the frame was read to its end, so the next message is understood
+        assert [d["code"] for d in client.open(URI, ":put 1 # c\n")] == ["schema/unexpected-argument"]
+
+    @pytest.mark.parametrize(
+        ("body", "code"),
+        [
+            pytest.param(b"\xff\xfe", -32700, id="not-utf-8"),
+            pytest.param(b"", -32700, id="empty-body"),
+            pytest.param(b"[" * 100_000, -32700, id="nested-too-deep-for-the-json-reader"),
+            pytest.param(b'[{"jsonrpc": "2.0", "method": "exit"}]', -32600, id="batch-array"),
+            pytest.param(b"42", -32600, id="number"),
+            pytest.param(b"null", -32600, id="null"),
+        ],
+    )
+    def test_other_bodies_that_are_not_a_message_are_answered_and_do_not_end_the_session(
+        self, client: LspClient, body: bytes, code: int
+    ) -> None:
+        assert client.send_unusable(body)["error"]["code"] == code
+        assert client.hover("file:///nope.rsc", 0, 0) is None
 
     def test_requests_before_initialize_are_refused(self) -> None:
         with in_process(initialize=False) as c:
@@ -199,6 +247,14 @@ class TestRealStdio:
     def test_a_clean_file_is_clean(self) -> None:
         with spawned() as (c, process):
             assert c.open("file:///clean.rsc", "/ip address\nadd address=1.1.1.1/32 interface=ether1\n") == []
+            c.shutdown()
+            assert process.wait(timeout=10) == 0
+
+    def test_a_malformed_message_does_not_end_the_session(self) -> None:
+        with spawned() as (c, process):
+            assert c.send_unusable(b"{ this is not json")["error"]["code"] == -32700
+            assert c.open("file:///after.rsc", ":put 1 # c\n")[0]["code"] == "schema/unexpected-argument"
+            assert c.errors == []
             c.shutdown()
             assert process.wait(timeout=10) == 0
 
