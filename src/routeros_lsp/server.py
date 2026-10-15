@@ -39,8 +39,19 @@ LOG_ERROR, LOG_WARNING, LOG_INFO = 1, 2, 3
 _EOF = object()
 
 
+class MalformedMessage(ValueError):
+    """A frame that was read whole but whose body is not a JSON-RPC message.
+
+    The framing is intact, so the stream is still in step and the session can go on once the error has been answered.
+    """
+
+    def __init__(self, code: int, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+
+
 def read_message(stream: BinaryIO) -> dict[str, Any] | None:
-    """Reads one framed JSON-RPC message, or None at the end of the stream."""
+    """Reads one framed JSON-RPC message, or None at the end of the stream. Raises MalformedMessage for an unusable body."""
     length: int | None = None
     while True:
         line = stream.readline()
@@ -60,9 +71,12 @@ def read_message(stream: BinaryIO) -> dict[str, Any] | None:
     body = stream.read(length)
     if len(body) < length:
         return None
-    message = json.loads(body.decode("utf-8"))
+    try:
+        message = json.loads(body.decode("utf-8"))
+    except (ValueError, RecursionError) as error:  # a bad UTF-8 sequence and bad JSON are both ValueErrors
+        raise MalformedMessage(PARSE_ERROR, f"the message is not valid JSON: {error}") from error
     if not isinstance(message, dict):
-        raise ValueError("a JSON-RPC message must be an object")
+        raise MalformedMessage(INVALID_REQUEST, "a JSON-RPC message must be an object")
     return message
 
 
@@ -124,7 +138,12 @@ class Server:
     def _read_loop(self) -> None:
         try:
             while True:
-                message = read_message(self.reader)
+                try:
+                    message = read_message(self.reader)
+                except MalformedMessage as error:
+                    # Answered by the main thread, which owns the output stream; the next frame can still be read.
+                    self._inbox.put(error)
+                    continue
                 if message is None:
                     break
                 self._inbox.put(message)
@@ -145,6 +164,9 @@ class Server:
                 item = self._inbox.get()
             if item is _EOF:
                 return 0 if self.shutdown_requested else 1
+            if isinstance(item, MalformedMessage):
+                self.respond_error(None, item.code, str(item))
+                continue
             self.dispatch(item)
         return self.exit_code
 

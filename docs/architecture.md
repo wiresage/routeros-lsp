@@ -23,7 +23,7 @@ LSP handling are written by hand in `server.py`. The command database ships insi
 | Features | `features/` | Diagnostics, completion, hover, document symbols and folding ranges on top of an analysis. |
 | Documents | `document.py` | Holds the text of an open file and converts between Python string offsets and the line and UTF-16 column positions LSP uses. |
 | Command line | `cli.py`, `cli_check.py` | `routeros-lsp check` runs the analysis on files, directories or standard input and prints the findings as text or JSON, with an exit status for CI. It builds the same settings object as the server, so the two cannot disagree. |
-| Server | `server.py`, `cli.py` | LSP wiring over stdio. A reader thread feeds a queue, so a burst of edits is analysed once, for the newest text. The analysis of a document is cached by its revision and the settings. A failure inside one feature is logged and answered with an empty result. |
+| Server | `server.py`, `cli.py` | LSP wiring over stdio. A reader thread feeds a queue, so a burst of edits is analysed once, for the newest text. The analysis of a document is cached by its revision and the settings. A failure inside one feature is logged and answered with an empty result. A frame whose body is not valid JSON, or not a JSON object, is answered with the JSON-RPC error `-32700` or `-32600` and the session goes on. |
 
 All paths above are below `src/routeros_lsp/`.
 
