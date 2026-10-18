@@ -63,6 +63,31 @@ class TestOverAPipePair:
         off = client.configure({"severities": {"schema/unexpected-argument": "off", "syntax/trailing-comment": "off"}}, URI)
         assert off == []
 
+    @pytest.mark.parametrize(
+        "notification",
+        [
+            pytest.param({"settings": None}, id="null-settings"),
+            pytest.param({}, id="no-settings"),
+            pytest.param({"settings": {}}, id="empty-settings"),
+            pytest.param({"settings": {"routeros": {}}}, id="empty-section"),
+        ],
+    )
+    def test_a_notification_without_settings_keeps_the_settings_in_force(self, notification: dict[str, Any]) -> None:
+        # Many clients send this after startup to say "something changed, ask me". There is nothing in it to apply, and applying
+        # it would throw away the initializationOptions the user configured.
+        options = {"severities": {"schema/unexpected-argument": "off", "syntax/trailing-comment": "off"}}
+        with in_process(options) as c:
+            assert c.open(URI, ":put 1 # c\n") == []
+            c.notify("workspace/didChangeConfiguration", notification)
+            assert c.change(URI, ":put 2 # c\n", 2) == []
+
+    def test_a_notification_with_settings_still_replaces_the_ones_in_force(self) -> None:
+        options = {"severities": {"schema/unexpected-argument": "off", "syntax/trailing-comment": "off"}}
+        with in_process(options) as c:
+            assert c.open(URI, ":put 1 # c\n") == []
+            restored = c.configure({"severities": {"syntax/trailing-comment": "off"}}, URI)
+            assert [d["code"] for d in restored] == ["schema/unexpected-argument"]
+
     def test_reads_settings_from_initialization_options(self) -> None:
         with in_process({"severities": {"schema/unexpected-argument": "hint"}}) as c:
             assert c.open(URI, ":put 1 # c\n")[0]["severity"] == 4

@@ -1,11 +1,30 @@
 from __future__ import annotations
 
-from routeros_lsp.config import DEFAULT_CONTEXT_VARIABLES, DEFAULT_SETTINGS, Settings, parse_settings
+import pytest
+
+from routeros_lsp.config import DEFAULT_CONTEXT_VARIABLES, DEFAULT_SETTINGS, Settings, has_settings, parse_settings
 
 
 def parse(raw: object) -> tuple[Settings, list[str]]:
     warnings: list[str] = []
     return parse_settings(raw, warnings.append), warnings
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        pytest.param(None, False, id="null"),
+        pytest.param({}, False, id="empty-object"),
+        pytest.param({"routeros": {}}, False, id="empty-routeros-section"),
+        pytest.param([], False, id="array"),
+        pytest.param("settings", False, id="string"),
+        pytest.param({"scope": "script"}, True, id="bare"),
+        pytest.param({"routeros": {"scope": "script"}}, True, id="nested"),
+        pytest.param({"severities": {}}, True, id="a-key-with-nothing-in-it-is-still-a-statement"),
+    ],
+)
+def test_tells_a_payload_with_settings_from_one_that_only_says_something_changed(raw: object, expected: bool) -> None:
+    assert has_settings(raw) is expected
 
 
 def test_anything_that_is_not_an_object_means_the_defaults() -> None:

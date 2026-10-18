@@ -2,7 +2,7 @@
 
 The server reads its settings from `initializationOptions` in the `initialize` request and from `settings` in
 `workspace/didChangeConfiguration`. The object can be given bare or nested under a `routeros` key. A change takes effect at
-once and every open document is checked again. Anything it does not recognise is reported on the client's log and ignored.
+once and every open document is checked again. Anything it does not recognise is reported on the client's log and ignored. A notification that carries no settings (`null`, an empty object or an empty `routeros` section) is ignored, and the settings in force stay as they are, because many clients send one after startup just to say that something changed.
 
 | Setting | Values | Default | What it does |
 |---|---|---|---|
