@@ -28,13 +28,29 @@ class Settings:
 DEFAULT_SETTINGS = Settings()
 
 
+def _root(raw: Any) -> Any:
+    """The settings object: ``raw`` itself, or what it holds under a ``routeros`` key."""
+    return raw["routeros"] if isinstance(raw, dict) and isinstance(raw.get("routeros"), dict) else raw
+
+
+def has_settings(raw: Any) -> bool:
+    """Whether a ``workspace/didChangeConfiguration`` payload carries any settings at all.
+
+    Clients send null or an empty object to say "something changed" and expect the server to ask for the details. That has
+    nothing to apply, and applying it would replace the settings in force, including the ``initializationOptions``, with the
+    defaults.
+    """
+    root = _root(raw)
+    return isinstance(root, dict) and bool(root)
+
+
 def parse_settings(raw: Any, warn: Callable[[str], None] = lambda message: None) -> Settings:
     """Reads settings from ``initializationOptions`` or a ``workspace/didChangeConfiguration`` payload.
 
     Both the bare object and one nested under a ``routeros`` key are accepted. Anything unrecognised is reported through
     ``warn`` and ignored.
     """
-    root = raw["routeros"] if isinstance(raw, dict) and isinstance(raw.get("routeros"), dict) else raw
+    root = _root(raw)
     if not isinstance(root, dict):
         return DEFAULT_SETTINGS
 

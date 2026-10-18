@@ -16,7 +16,7 @@ from typing import Any, BinaryIO
 
 from . import __version__
 from .analyze import Analysis, analyze, load_schema
-from .config import DEFAULT_SETTINGS, Settings, parse_settings
+from .config import DEFAULT_SETTINGS, Settings, has_settings, parse_settings
 from .document import Document
 from .features.completion import completions
 from .features.diagnostics import to_diagnostics
@@ -286,7 +286,10 @@ class Server:
         self.exit_code = 0 if self.shutdown_requested else 1
 
     def on_did_change_configuration(self, params: dict[str, Any]) -> None:
-        self.apply_settings(params.get("settings"))
+        settings = params.get("settings")
+        if not has_settings(settings):
+            return  # "something changed" with nothing to read: keep the settings in force instead of resetting them
+        self.apply_settings(settings)
         for uri in self.documents:
             self._dirty[uri] = None
 
