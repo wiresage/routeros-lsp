@@ -315,13 +315,17 @@ class _Binder:
                 self.element(element.value, scope)
 
     def expr(self, expr: Expr, scope: Scope) -> None:
-        if isinstance(expr, Binary):
-            self.expr(expr.left, scope)
-            self.expr(expr.right, scope)
-        elif isinstance(expr, Unary):
-            self.expr(expr.operand, scope)
-        elif not isinstance(expr, Word | Missing):
-            self.element(expr, scope)
+        # With a stack of its own: a long chain of operators is a tree as deep as the chain, too deep to recurse over.
+        pending = [expr]
+        while pending:
+            current = pending.pop()
+            if isinstance(current, Binary):
+                pending.append(current.right)
+                pending.append(current.left)
+            elif isinstance(current, Unary):
+                pending.append(current.operand)
+            elif not isinstance(current, Word | Missing):
+                self.element(current, scope)
 
     def string(self, literal: StringLit, scope: Scope) -> None:
         for part in literal.parts:

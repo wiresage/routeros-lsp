@@ -113,6 +113,15 @@ class LspClient:
                 raise TimeoutError(f"no diagnostics for version {version} of {uri} within {TIMEOUT} s")
             return list(found()["diagnostics"])  # type: ignore[index]
 
+    def wait_for_severity(self, uri: str, severity: int) -> bool:
+        """Blocks until a publication for ``uri`` has a diagnostic of the given severity; False when none arrives in time."""
+
+        def found() -> bool:
+            return any(d["severity"] == severity for p in self._published[uri] for d in p["diagnostics"])
+
+        with self._cv:
+            return self._cv.wait_for(found, TIMEOUT)
+
     # -- the protocol -----------------------------------------------------------------------------------------------------
 
     def initialize(self, initialization_options: Any = None) -> dict[str, Any]:

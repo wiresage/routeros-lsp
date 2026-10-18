@@ -4,10 +4,12 @@ import io
 import os
 import subprocess
 import sys
+from typing import Any
 
 import pytest
 
 from routeros_lsp import __version__
+from routeros_lsp import server as server_module
 from routeros_lsp.server import MalformedMessage, read_message
 from tests.lsp_client import ROOT, LspClient, in_process, spawned
 
@@ -166,6 +168,53 @@ class TestPositions:
         assert client.published(URI)[-1]["version"] == 100
 
 
+class TestContainment:
+    def test_a_document_the_analysis_fails_on_does_not_end_the_session(
+        self, client: LspClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        real = server_module.analyze
+
+        def flaky(text: str, **options: Any) -> Any:
+            if "BOOM" in text:
+                raise RecursionError("maximum recursion depth exceeded")
+            return real(text, **options)
+
+        monkeypatch.setattr(server_module, "analyze", flaky)
+        other = "file:///other.rsc"
+        assert [d["code"] for d in client.open(other, ":put 1 # c\n")] == ["schema/unexpected-argument"]
+        # the failing document is answered with no diagnostics, so no stale ones stay on screen, and the failure is logged
+        assert client.open(URI, ":put BOOM\n") == []
+        assert any("test.rsc" in log["message"] and "RecursionError" in log["message"] for log in client.logs)
+        # the session, and the other document, carry on
+        assert [d["code"] for d in client.change(other, ":put 2 # d\n", 2)] == ["schema/unexpected-argument"]
+        assert client.hover(other, 0, 2) is not None
+
+    def test_the_other_documents_are_still_published_when_a_configuration_change_fails_on_one(
+        self, client: LspClient, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        real = server_module.analyze
+
+        def flaky(text: str, **options: Any) -> Any:
+            if "BOOM" in text and options["severities"]:
+                raise ValueError("a bug that only some settings reach")
+            return real(text, **options)
+
+        monkeypatch.setattr(server_module, "analyze", flaky)
+        other = "file:///other.rsc"
+        client.open(URI, ":put BOOM\n")
+        assert client.open(other, ":put 1 # c\n")[0]["severity"] == 1
+        # both documents are analysed again; the failing one must not stop the other from being republished
+        client.notify("workspace/didChangeConfiguration", {"settings": {"severities": {"schema/unexpected-argument": "warning"}}})
+        assert client.wait_for_severity(other, 2)
+
+    def test_a_long_operator_chain_is_answered_and_the_session_goes_on(self, client: LspClient) -> None:
+        text = ":put (" + "+".join(["$a"] * 20_000) + ")\n"
+        assert [d["code"] for d in client.open(URI, text)] == ["vars/undeclared-read"]
+        hover = client.hover(URI, 0, 7)
+        assert hover is not None and "not declared" in hover["contents"]["value"]
+        assert client.change(URI, ":put 1\n", 2) == []
+
+
 class TestFraming:
     @staticmethod
     def frame(body: bytes) -> bytes:
@@ -257,6 +306,37 @@ class TestRealStdio:
             assert c.errors == []
             c.shutdown()
             assert process.wait(timeout=10) == 0
+
+    def test_a_crash_inside_the_server_still_ends_the_process_with_exit_code_1(self) -> None:
+        # The reader thread is left blocked in read(), as in a real session. If the exception were allowed to take the interpreter
+        # through its normal shutdown, Python would abort with "Fatal Python error: _enter_buffered_busy" and a crash exit code.
+        script = (
+            "import threading\n"
+            "from routeros_lsp import server\n"
+            "def run(self):\n"
+            "    threading.Thread(target=self._read_loop, daemon=True).start()\n"
+            "    raise RuntimeError('simulated bug in the server')\n"
+            "server.Server.run = run\n"
+            "from routeros_lsp.cli import main\n"
+            "main(['--stdio'])\n"
+        )
+        env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
+        process = subprocess.Popen(
+            [sys.executable, "-c", script], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+        )
+        try:
+            code = process.wait(timeout=30)
+            assert process.stderr is not None
+            stderr = process.stderr.read().decode("utf-8", "replace")
+        finally:
+            if process.poll() is None:
+                process.kill()
+            for stream in (process.stdin, process.stdout, process.stderr):
+                if stream is not None:
+                    stream.close()
+        assert "simulated bug in the server" in stderr
+        assert "Fatal Python error" not in stderr
+        assert code == 1
 
     def test_exit_without_shutdown_is_a_failure(self) -> None:
         with spawned() as (c, process):

@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-from routeros_lsp import __version__
+from routeros_lsp import __version__, cli_check
 from routeros_lsp.cli_check import run
 from tests.lsp_client import ROOT
 
@@ -61,6 +61,26 @@ class TestExitStatus:
         assert result.code == 2
         assert "missing.rsc" in result.err
         assert "[schema/unexpected-argument]" in result.out
+
+    def test_a_file_the_analysis_fails_on_is_reported_and_the_others_are_still_checked(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        real = cli_check.analyze
+
+        def flaky(text: str, **options: Any) -> Any:
+            if "EXPLODE" in text:
+                raise RecursionError("maximum recursion depth exceeded")
+            return real(text, **options)
+
+        monkeypatch.setattr(cli_check, "analyze", flaky)
+        boom = write(tmp_path, "a-boom.rsc", ":put EXPLODE\n")
+        bad = write(tmp_path, "b-bad.rsc", MIXED)
+        result = check(boom, bad)
+        # exit status 2 is "could not check", which a CI job can tell from 1, "found problems"
+        assert result.code == 2
+        assert "a-boom.rsc" in result.err and "RecursionError" in result.err
+        assert "[schema/unexpected-argument]" in result.out
+        assert "Checked 1 file" in result.err
 
     def test_a_file_that_is_not_utf8_is_reported_not_crashed_on(self, tmp_path: Path) -> None:
         path = tmp_path / "latin1.rsc"
