@@ -71,16 +71,20 @@ class LspClient:
                 raise ConnectionError(f"the server closed the stream before answering {method}")
             return self._responses.pop(request_id)
 
-    def send_unusable(self, body: bytes) -> dict[str, Any]:
-        """Sends a correctly framed body that is not a JSON-RPC message and returns the answer, which has no request id."""
-        self.writer.write(b"Content-Length: %d\r\n\r\n%s" % (len(body), body))
+    def send_raw(self, data: bytes) -> dict[str, Any]:
+        """Writes the bytes as they are and returns the answer that has no request id: an error about the bytes themselves."""
+        self.writer.write(data)
         self.writer.flush()
         with self._cv:
             if not self._cv.wait_for(lambda: None in self._responses or self._closed, TIMEOUT):
-                raise TimeoutError("no answer to an unusable message")
+                raise TimeoutError("no answer to the bytes that were sent")
             if None not in self._responses:
-                raise ConnectionError("the server closed the stream instead of answering an unusable message")
+                raise ConnectionError("the server closed the stream instead of answering the bytes that were sent")
             return self._responses.pop(None)
+
+    def send_unusable(self, body: bytes) -> dict[str, Any]:
+        """Sends a correctly framed body that is not a JSON-RPC message and returns the answer, which has no request id."""
+        return self.send_raw(b"Content-Length: %d\r\n\r\n%s" % (len(body), body))
 
     def request(self, method: str, params: dict[str, Any] | None = None) -> Any:
         response = self.request_raw(method, params)
