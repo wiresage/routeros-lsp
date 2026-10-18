@@ -70,7 +70,7 @@ routeros-lsp check --strict --format json export.rsc
 cat export.rsc | routeros-lsp check -         # standard input
 ```
 
-Findings are printed as `path:line:column: severity: message [rule]`, or as a JSON array with `--format json`; a summary goes to
+Findings are printed as `path:line:column: severity: message [rule]`, or as a JSON array with `--format json` (plain ASCII, other characters are escaped, so it reads the same under any console encoding); a summary goes to
 stderr, so stdout can be piped. The exit status is 0 when there is nothing to fix, 1 when errors were found (with `--strict`
 warnings count too) and 2 when a file cannot be read or analysed, or an option is wrong. The settings of the editor integration are options:
 `--scope`, `--schema`, `--severity RULE=LEVEL` and `--context-variable NAME`; see `routeros-lsp check --help`.

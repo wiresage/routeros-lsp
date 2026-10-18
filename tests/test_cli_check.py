@@ -128,6 +128,16 @@ class TestOutput:
     def test_json_for_a_clean_file_is_an_empty_array(self, tmp_path: Path) -> None:
         assert json.loads(check("--format", "json", write(tmp_path, "ok.rsc", CLEAN)).out) == []
 
+    def test_json_is_plain_ascii_and_keeps_every_character(self, tmp_path: Path) -> None:
+        # A finding can quote text from the script, and a path can hold any character. Raw non-ASCII in the output would be
+        # encoded with whatever the console uses, so the JSON is escaped and reads the same everywhere.
+        path = write(tmp_path, "café.rsc", ":put “hello”\n")
+        out = check("--format", "json", path).out
+        assert out.isascii()
+        found: list[dict[str, Any]] = json.loads(out)
+        assert found[0]["path"].endswith("café.rsc")
+        assert "“" in found[0]["message"]
+
 
 class TestPositions:
     def test_lines_are_counted_for_lf_crlf_and_cr(self, tmp_path: Path) -> None:
@@ -238,6 +248,23 @@ class TestRealCommand:
             [sys.executable, "-m", "routeros_lsp", "--version"], capture_output=True, text=True, env=env, timeout=60
         )
         assert done.stdout.strip() == __version__
+
+    @pytest.mark.parametrize("script", [":put “hello”\n", "/日本 print\n"], ids=["smart-quotes", "cjk-name"])
+    def test_json_survives_a_console_that_is_not_utf8(self, script: str) -> None:
+        # Redirected output is encoded with the locale, cp1252 on Windows. A smart quote then became a byte that is not UTF-8,
+        # and a character the code page lacks became "?". Machine-readable output has to read the same on every machine.
+        env = {k: v for k, v in os.environ.items() if k != "PYTHONUTF8"}
+        env |= {"PYTHONPATH": str(ROOT / "src"), "PYTHONIOENCODING": "cp1252"}
+        done = subprocess.run(
+            [sys.executable, "-m", "routeros_lsp", "check", "--format", "json", "-"],
+            input=script.encode("utf-8"),
+            capture_output=True,
+            env=env,
+            timeout=60,
+        )
+        found: list[dict[str, Any]] = json.loads(done.stdout.decode("utf-8"))
+        messages = " ".join(f["message"] for f in found)
+        assert all(ch in messages for ch in script if ord(ch) > 127)
 
     def test_unencodable_output_does_not_crash(self) -> None:
         # a non-ASCII command name is echoed in the message; a console that cannot encode it must not make the command fail

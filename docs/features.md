@@ -28,7 +28,7 @@ Hardware-dependent findings (`schema/unknown-command`, `schema/unknown-parameter
 ## Command line
 
 `routeros-lsp check PATH...` runs the same analysis on files (a directory means every `.rsc` file below it, `-` means standard
-input) and prints `path:line:column: severity: message [rule]`, or JSON with `--format json`. Columns count characters, from 1.
+input) and prints `path:line:column: severity: message [rule]`, or JSON with `--format json` (plain ASCII, other characters are escaped). Columns count characters, from 1.
 The exit status is 0 when there is nothing to fix, 1 when errors were found (`--strict`: also warnings) and 2 when a file cannot be
 read or analysed, or an option is wrong. `--scope`, `--schema`, `--severity RULE=LEVEL` and `--context-variable NAME` are the settings from
 [configuration.md](configuration.md).
