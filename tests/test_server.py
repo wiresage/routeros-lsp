@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import os
+import random
 import subprocess
 import sys
 from typing import Any
@@ -277,6 +278,62 @@ class TestFraming:
     def test_a_truncated_body_is_the_end_of_the_stream(self) -> None:
         assert read_message(io.BytesIO(b"Content-Length: 50\r\n\r\n{}")) is None
 
+    @pytest.mark.parametrize(
+        "value",
+        [
+            pytest.param(b"-1", id="negative"),
+            pytest.param(b"abc", id="not-a-number"),
+            pytest.param(b"", id="empty"),
+            pytest.param(b"1_0", id="underscore"),
+            pytest.param(b"+5", id="signed"),
+            pytest.param(b"1.5", id="fraction"),
+            pytest.param("٣".encode(), id="non-ascii-digit"),
+            pytest.param(b"99999999999", id="far-too-large"),
+            pytest.param(b"9" * 5000, id="thousands-of-digits"),
+            pytest.param(b"67108865", id="one-over-the-limit"),
+        ],
+    )
+    def test_a_content_length_that_is_not_a_usable_number_is_refused_and_reading_goes_on(self, value: bytes) -> None:
+        valid = self.frame(b'{"jsonrpc": "2.0", "method": "exit"}')
+        stream = io.BytesIO(b"Content-Length: " + value + b"\r\n\r\n" + valid)
+        with pytest.raises(MalformedMessage) as raised:
+            read_message(stream)
+        assert raised.value.code == -32600
+        # the next header is found again, so the frame after the bad one is read
+        assert read_message(stream) == {"jsonrpc": "2.0", "method": "exit"}
+
+    def test_the_largest_allowed_content_length_and_padding_with_zeros_are_accepted(self) -> None:
+        assert read_message(io.BytesIO(b"Content-Length: 67108864\r\n\r\n")) is None  # waits for a body that never comes
+        assert read_message(io.BytesIO(b"Content-Length: 0000000000000000000000000002\r\n\r\n{}")) == {}
+
+    def test_arbitrary_bytes_never_escape_as_anything_but_a_malformed_message(self) -> None:
+        rng = random.Random(20261018)
+        pieces = [
+            b"Content-Length",
+            b": ",
+            b"\r\n",
+            b"\n",
+            b"-",
+            b"0",
+            b"9",
+            b"9" * 30,
+            b"{",
+            b"}",
+            b'"',
+            b" ",
+            b"\xff",
+            b"abc",
+            b"\r\n\r\n",
+        ]
+        for _ in range(3000):
+            stream = io.BytesIO(b"".join(rng.choice(pieces) for _ in range(rng.randrange(1, 40))))
+            for _ in range(20):  # each call uses up at least a line, or reaches the end
+                try:
+                    if read_message(stream) is None:
+                        break
+                except MalformedMessage:
+                    pass
+
 
 class TestProtocolManners:
     def test_unknown_requests_are_answered_with_an_error(self, client: LspClient) -> None:
@@ -312,6 +369,14 @@ class TestProtocolManners:
         assert client.send_unusable(body)["error"]["code"] == code
         assert client.hover("file:///nope.rsc", 0, 0) is None
 
+    @pytest.mark.parametrize("value", [b"-1", b"99999999999", b"abc"], ids=["negative", "far-too-large", "not-a-number"])
+    def test_a_bad_content_length_is_answered_and_the_session_goes_on(self, client: LspClient, value: bytes) -> None:
+        response = client.send_raw(b"Content-Length: " + value + b"\r\n\r\n")
+        assert response["id"] is None
+        assert response["error"]["code"] == -32600
+        assert "Content-Length" in response["error"]["message"]
+        assert [d["code"] for d in client.open(URI, ":put 1 # c\n")] == ["schema/unexpected-argument"]
+
     def test_requests_before_initialize_are_refused(self) -> None:
         with in_process(initialize=False) as c:
             assert c.request_raw("textDocument/hover", {})["error"]["code"] == -32002
@@ -337,6 +402,15 @@ class TestRealStdio:
     def test_a_clean_file_is_clean(self) -> None:
         with spawned() as (c, process):
             assert c.open("file:///clean.rsc", "/ip address\nadd address=1.1.1.1/32 interface=ether1\n") == []
+            c.shutdown()
+            assert process.wait(timeout=10) == 0
+
+    @pytest.mark.parametrize("value", [b"-1", b"99999999999"], ids=["negative", "far-too-large"])
+    def test_a_bad_content_length_does_not_stall_or_end_the_real_process(self, value: bytes) -> None:
+        with spawned() as (c, process):
+            assert c.send_raw(b"Content-Length: " + value + b"\r\n\r\n")["error"]["code"] == -32600
+            assert c.open("file:///after.rsc", ":put 1 # c\n")[0]["code"] == "schema/unexpected-argument"
+            assert c.errors == []
             c.shutdown()
             assert process.wait(timeout=10) == 0
 

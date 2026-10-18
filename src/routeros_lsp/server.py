@@ -50,8 +50,29 @@ class MalformedMessage(ValueError):
         self.code = code
 
 
+#: The largest message the server waits for. A document is a few megabytes at most, so a bigger number is a mistake, and trusting it
+#: would make the reader allocate for it or wait for a body that never comes.
+MAX_MESSAGE_BYTES = 64 * 1024 * 1024
+
+
+def _content_length(value: bytes) -> int:
+    """The size of the body that follows the headers. Only plain digits count: int() would also take a sign and underscores."""
+    text = value.strip()
+    significant = text.lstrip(b"0") or b"0"
+    # the length check comes first, so that int() is never asked to convert thousands of digits
+    if not text.isdigit() or len(significant) > len(str(MAX_MESSAGE_BYTES)) or int(significant) > MAX_MESSAGE_BYTES:
+        raise MalformedMessage(
+            INVALID_REQUEST, f"invalid Content-Length {text[:40]!r}: a size from 0 to {MAX_MESSAGE_BYTES} bytes is expected"
+        )
+    return int(significant)
+
+
 def read_message(stream: BinaryIO) -> dict[str, Any] | None:
-    """Reads one framed JSON-RPC message, or None at the end of the stream. Raises MalformedMessage for an unusable body."""
+    """Reads one framed JSON-RPC message, or None at the end of the stream.
+
+    Raises MalformedMessage for an unusable body, and for a Content-Length that cannot be trusted. After the latter the next call
+    looks for the next header, because there is no telling where the body that was announced ends.
+    """
     length: int | None = None
     while True:
         line = stream.readline()
@@ -64,10 +85,7 @@ def read_message(stream: BinaryIO) -> dict[str, Any] | None:
             break
         name, _, value = line.partition(b":")
         if name.strip().lower() == b"content-length":
-            try:
-                length = int(value.strip())
-            except ValueError:
-                length = None
+            length = _content_length(value)
     body = stream.read(length)
     if len(body) < length:
         return None
