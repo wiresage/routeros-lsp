@@ -196,7 +196,9 @@ def run(argv: Sequence[str], stdin: BinaryIO, stdout: TextIO, stderr: TextIO) ->
         all_found.extend(locate(name, text, result.findings))
 
     if args.format == "json":
-        stdout.write(json.dumps([as_json(f) for f in all_found], indent=2, ensure_ascii=False) + "\n")
+        # Escaped, not raw: stdout is encoded with the locale when it is redirected (cp1252 on Windows), which is not UTF-8 and
+        # loses what the code page lacks. Plain ASCII reads the same under every encoding.
+        stdout.write(json.dumps([as_json(f) for f in all_found], indent=2) + "\n")
     else:
         for found in all_found:
             stdout.write(as_text(found) + "\n")
