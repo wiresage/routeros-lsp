@@ -300,6 +300,8 @@ class Server:
         item = params["textDocument"]
         document = Document(item["uri"], item.get("text", ""), item.get("version", 0), item.get("languageId", "routeros"))
         self.documents[document.uri] = document
+        # A new Document counts its revisions from zero again, so the analysis cached for a document it replaces would look current.
+        self._cache.pop(document.uri, None)
         self._dirty[document.uri] = None
 
     def on_did_change(self, params: dict[str, Any]) -> None:

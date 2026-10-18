@@ -56,6 +56,22 @@ class TestOverAPipePair:
         assert "syntax/missing-closer" in [d["code"] for d in client.change(URI, ":put (\n", 3)]
         assert client.close(URI) == []
 
+    def test_opening_a_document_again_analyses_the_new_text(self, client: LspClient) -> None:
+        first = ":put 1 # c\n"
+        assert [d["code"] for d in client.open(URI, first)] == ["schema/unexpected-argument"]
+        hover = client.hover(URI, 0, 2)
+        assert hover is not None and "**/put** command" in hover["contents"]["value"]
+        # A second didOpen without a didClose breaks the protocol, but the answer must still be about the text it carried: a fresh
+        # document starts counting its revisions from zero again, which must not be mistaken for the one it replaces.
+        assert client.open(URI, "/ip address print\n", version=2) == []
+        hover = client.hover(URI, 0, 2)
+        assert hover is not None and "**/ip** menu" in hover["contents"]["value"]
+
+    def test_closing_and_opening_a_document_again_analyses_the_new_text(self, client: LspClient) -> None:
+        assert [d["code"] for d in client.open(URI, ":put 1 # c\n")] == ["schema/unexpected-argument"]
+        assert client.close(URI) == []
+        assert client.open(URI, "/ip address print\n", version=2) == []
+
     def test_applies_severities_from_configuration_and_revalidates(self, client: LspClient) -> None:
         assert client.open(URI, ":put 1 # c\n")[0]["severity"] == 1
         warned = client.configure({"routeros": {"severities": {"schema/unexpected-argument": "warning"}}}, URI)
