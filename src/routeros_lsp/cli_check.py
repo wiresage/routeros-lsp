@@ -28,8 +28,8 @@ Check RouterOS script files (.rsc) and print what the language server would repo
 
 A path can be a file, a directory (every .rsc file below it is checked) or - for standard input.
 
-Exit status: 0 nothing to fix, 1 errors were found (with --strict also warnings), 2 a file could not be read or the
-command line is wrong.
+Exit status: 0 nothing to fix, 1 errors were found (with --strict also warnings), 2 a file could not be read or analysed,
+or the command line is wrong.
 """
 
 LEVELS = ("error", "warning", "information", "hint")
@@ -167,7 +167,7 @@ def run(argv: Sequence[str], stdin: BinaryIO, stdout: TextIO, stderr: TextIO) ->
     schema = load_schema(settings.schema, warn)
     files = expand(args.paths)
     all_found: list[Located] = []
-    unreadable = 0
+    failed = 0
     for path in files:
         try:
             raw = stdin.read() if path == "-" else Path(path).read_bytes()
@@ -176,16 +176,23 @@ def run(argv: Sequence[str], stdin: BinaryIO, stdout: TextIO, stderr: TextIO) ->
         except (OSError, UnicodeDecodeError) as error:
             reason = "not valid UTF-8" if isinstance(error, UnicodeDecodeError) else error.strerror or str(error)
             stderr.write(f"{PROG}: {'<stdin>' if path == '-' else path}: {reason}\n")
-            unreadable += 1
+            failed += 1
             continue
         name = "<stdin>" if path == "-" else path
-        result = analyze(
-            text,
-            severities=settings.severities,
-            scope=settings.scope,
-            context_variables=settings.context_variables,
-            schema=schema,
-        )
+        try:
+            result = analyze(
+                text,
+                severities=settings.severities,
+                scope=settings.scope,
+                context_variables=settings.context_variables,
+                schema=schema,
+            )
+        except Exception as error:  # a bug in the analysis must not hide the findings in the other files
+            stderr.write(
+                f"{PROG}: {name}: the analysis failed ({type(error).__name__}: {error}). This is a bug, please report it.\n"
+            )
+            failed += 1
+            continue
         all_found.extend(locate(name, text, result.findings))
 
     if args.format == "json":
@@ -196,9 +203,9 @@ def run(argv: Sequence[str], stdin: BinaryIO, stdout: TextIO, stderr: TextIO) ->
 
     counts = {level: sum(1 for f in all_found if f.finding.severity == level) for level in LEVELS}
     shown = [plural(n, level) for level, n in counts.items() if n]
-    checked = plural(len(files) - unreadable, "file")
+    checked = plural(len(files) - failed, "file")
     stderr.write(f"Checked {checked}: {', '.join(shown) if shown else 'no findings'}.\n")
 
-    if unreadable:
+    if failed:
         return 2
     return 1 if any(fails(f, args.strict) for f in all_found) else 0

@@ -216,13 +216,17 @@ class _CommandChecker:
                     self.nested(part.group, path)
 
     def expr(self, expr: Expr, path: Path) -> None:
-        if isinstance(expr, Binary):
-            self.expr(expr.left, path)
-            self.expr(expr.right, path)
-        elif isinstance(expr, Unary):
-            self.expr(expr.operand, path)
-        elif not isinstance(expr, Word | Missing):
-            self.nested(expr, path)
+        # With a stack of its own: a long chain of operators is a tree as deep as the chain, too deep to recurse over.
+        pending = [expr]
+        while pending:
+            current = pending.pop()
+            if isinstance(current, Binary):
+                pending.append(current.right)
+                pending.append(current.left)
+            elif isinstance(current, Unary):
+                pending.append(current.operand)
+            elif not isinstance(current, Word | Missing):
+                self.nested(current, path)
 
     # ------------------------------------------------------------------------------------------------------------------
     # The words at the start of a command line: menu path and command

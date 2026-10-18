@@ -35,11 +35,17 @@ def children(node: Node) -> list[Node]:
 
 
 def visit(node: Node, callback: Callable[[Node, Node | None], bool | None], parent: Node | None = None) -> None:
-    """Depth-first walk. Return False from the callback to skip a node's children."""
-    if callback(node, parent) is False:
-        return
-    for child in children(node):
-        visit(child, callback, node)
+    """Depth-first walk, parents before children. Return False from the callback to skip a node's children.
+
+    It keeps its own stack. An operator chain such as ``1+1+1+...`` is a tree as deep as the chain is long, and recursing over it
+    would run into the recursion limit.
+    """
+    stack: list[tuple[Node, Node | None]] = [(node, parent)]
+    while stack:
+        current, above = stack.pop()
+        if callback(current, above) is False:
+            continue
+        stack.extend((child, current) for child in reversed(children(current)))
 
 
 def ancestors_at(root: Node, offset: int) -> list[Node]:

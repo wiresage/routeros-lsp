@@ -254,8 +254,13 @@ class Server:
         pending, self._dirty = list(self._dirty), {}
         for uri in pending:
             document = self.documents.get(uri)
-            if document is not None:
+            if document is None:
+                continue
+            try:
                 self.publish(document)
+            except Exception as error:  # a document the analysis cannot handle must not end the session for all the others
+                self.log(LOG_ERROR, f"analysing {uri} failed: {error!r}")
+                self.notify("textDocument/publishDiagnostics", {"uri": uri, "version": document.version, "diagnostics": []})
 
     # ------------------------------------------------------------------------------------------------------------------
     # Lifecycle
